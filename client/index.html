@@ -9,29 +9,79 @@
         <h1>Avatar Maker</h1>
         <div id="workspace">
             <div id="canvas">
-                <canvas width="500em"></canvas>
+                <div style="position: relative; width: 0; height: 0">
+                    <div id="move_controls" style="display:none;">
+                        <button id="check"><img class="icon" src="assets/check.png"></button>
+                        <button id="up"><img class="icon" src="assets/up.png"></button>
+                        <button id="down"><img class="icon" src="assets/down.png"></button>
+                        <button id="left"><img class="icon" src="assets/left.png"></button>
+                        <button id="right"><img class="icon" src="assets/right.png"></button>
+                        <button id="counterclockwise"><img class="icon" src="assets/counterclockwise.png"></button>
+                        <button id="clockwise"><img class="icon" src="assets/clockwise.png"></button>
+                    </div>
+                </div>
+                <canvas width="500em">
+                </canvas>
                 <br>
                 <button id="save"><img class="icon" src="assets/download.png"></button>
                 <button id="reset"><img class="icon" src="assets/restart.png"></button>
-                <button id="counterclockwise"><img class="icon" src="assets/counterclockwise.png"></button>
-                <button id="up"><img class="icon" src="assets/up.png"></button>
-                <button id="down"><img class="icon" src="assets/down.png"></button>
-                <button id="left"><img class="icon" src="assets/left.png"></button>
-                <button id="right"><img class="icon" src="assets/right.png"></button>
-                <button id="clockwise"><img class="icon" src="assets/clockwise.png"></button>
             </div>
             <div id="elements">
-                <div class="element">
-                    <button class="image"><img src="assets/smile.png"></button>
+                <div class="element singular">
+                    <span>Element</span>
                     <div>
-                        <button class="move"><img class="icon" src="assets/move.png"></button><br>
-                        <button class="colors"><img class="icon" src="assets/color-picker.png"></button>
-                    </div>
-                    <div>
-                        <button class="hide"><img class="icon" src="assets/eye.png"></button><br>
-                        <button class="remove"><img class="icon" src="assets/minus.png"></button>
+                        <button class="image"><img src="assets/smile.png"></button>
                     </div>
                 </div>
+                <div class="element_children">
+                    <div class="element dual">
+                        <span>Element</span>
+                        <div>
+                            <button class="image"><img src="assets/smile.png"></button>
+                            <button class="colors"><img class="icon" src="assets/color-picker.png"></button>
+                        </div>
+                    </div>
+                    <div class="element_children">
+                        <div class="element tri">
+                            <span>Element</span>
+                            <div>
+                                <button class="image"><img src="assets/smile.png"></button>
+                                <button class="colors"><img class="icon" src="assets/color-picker.png"></button>
+                                <button class="move"><img class="icon" src="assets/move.png"></button>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="add_element"><img class="icon" src="assets/plus.png"></button>
+                </div>
+                <div class="element quad">
+                    <span>Element</span>
+                    <div>
+                        <button class="image"><img src="assets/smile.png"></button>
+                        <button class="colors"><img class="icon" src="assets/color-picker.png"></button>
+                        <button class="move"><img class="icon" src="assets/move.png"></button>
+                        <button class="hide"><img class="icon" src="assets/eye.png"></button>
+                        <button class="remove"><img class="icon" src="assets/delete.png"></button>
+                    </div>
+                </div>
+                <button class="add_element"><img class="icon" src="assets/plus.png"></button>
+            </div>
+        </div>
+        <div id="popup" style="display:none;">
+            <div id="element_select">
+                <div id="selectable_elements">
+                    <button class="image"><img src="assets/smile.png"></button>
+                    <button class="image"><img src="assets/smile.png"></button>
+                    <button class="image"><img src="assets/smile.png"></button>
+                    <button class="image"><img src="assets/smile.png"></button>
+                    <button class="image"><img src="assets/smile.png"></button>
+                    <button class="image"><img src="assets/smile.png"></button>
+                    <button class="image"><img src="assets/smile.png"></button>
+                    <button class="image"><img src="assets/smile.png"></button>
+                    <button class="image"><img src="assets/smile.png"></button>
+                </div>
+                <br>
+                <button>Confirm</button>
+                <button>Cancel</button>
             </div>
         </div>
         <footer>
