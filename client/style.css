@@ -1,0 +1,35 @@
+body {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: burlywood;
+}
+#workspace {
+    display: flex;
+}
+#workspace > div {
+    background-color: whitesmoke;
+    margin: 1em;
+    padding: 1em;
+}
+canvas {
+    border: 3px dotted black;
+    aspect-ratio: 1;
+}
+button {
+    padding: 0.075em;
+    margin: 0.05em;
+    border: 2px solid black;
+    text-align: center;
+    vertical-align: middle;
+}
+.element {
+    display:flex;
+    align-items: center;
+}
+.icon {
+    width: 2em;
+    height: 2em;
+}
+.image > img {
+    width: 5em;
+    height: 5em;
+}
