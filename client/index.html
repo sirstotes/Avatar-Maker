@@ -3,37 +3,40 @@
     <head>
         <title>Avatar Maker</title>
         <link type="text/css" rel="stylesheet" href="style.css">
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.min.js"></script>
         <script type="text/javascript" src="maker.js"></script>
     </head>
     <body>
         <h1>Avatar Maker</h1>
         <div id="workspace">
             <div id="canvas">
-                <div style="position: relative; width: 0; height: 0">
+                <div id="controls_position">
                     <div id="movement_controls" class="controls" hidden="true">
                         <button onclick="hideControls();" id="move_check" style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
-                        <button id="move_up"><img class="icon" src="assets/up.png"></button>
-                        <button id="move_down"><img class="icon" src="assets/down.png"></button>
-                        <button id="move_left"><img class="icon" src="assets/left.png"></button>
-                        <button id="move_right"><img class="icon" src="assets/right.png"></button>
-                        <button id="move_counterclockwise"><img class="icon" src="assets/counterclockwise.png"></button>
-                        <button id="move_clockwise"><img class="icon" src="assets/clockwise.png"></button>
+                        <button onclick="moveElement(0, -5);"><img class="icon" src="assets/up.png"></button>
+                        <button onclick="moveElement(0, 5);"><img class="icon" src="assets/down.png"></button>
+                        <button onclick="moveElement(-5, 0);"><img class="icon" src="assets/left.png"></button>
+                        <button onclick="moveElement(5, 0);"><img class="icon" src="assets/right.png"></button>
+                        <button onclick="rotateElement(5);"><img class="icon" src="assets/counterclockwise.png"></button>
+                        <button onclick="rotateElement(-5);"><img class="icon" src="assets/clockwise.png"></button>
+                        <button onclick="scaleElement(-0.1, -0.1);"><img class="icon" src="assets/smaller.png"></button>
                     </div>
                     <div id="color_controls" class="controls" hidden="true">
-                        <button onclick="hideControls();"><img class="icon" src="assets/check.png"></button>
-                        <button onclick="selectColor(this);" class="color" style="background-color: red;"></button>
-                        <button onclick="selectColor(this);" class="color" style="background-color: yellow;"></button>
-                        <button onclick="selectColor(this);" class="color" style="background-color: green;"></button>
-                        <button onclick="selectColor(this);" class="color" style="background-color: blue;"></button>
-                        <button onclick="selectColor(this);" class="color" style="background-color: purple;"></button>
-                        <button><img class="icon" src="assets/plus.png"></button>
-                        <button><img class="icon" src="assets/color-picker.png"></button>
+                        <div></div>
+                        <button onclick="hideColorControls(true);" style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+                        <button class="custom" onclick="removeSelectedColor();""><img class="icon" src="assets/delete.png"></button>
+                        <button class="custom" onclick="showColorPicker();"><img class="icon" src="assets/plus.png"></button>
+                    </div>
+                    <div id="color_picker" class="controls" hidden="true">
+                        <input oninput="updateSelectedColor(this.value);" id="color_picker_input" type="color" style="width:3em;height:3em;"><br>
+                        <button onclick="hideColorPicker(true);" style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+                        <button onclick="hideColorPicker(false);" style="background-color: red;"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
                     </div>
                 </div>
-                <canvas width="500em" style="background-color: white;"></canvas>
+                <div id="canvas_container"></div>
                 <br>
                 <button id="save" class="extrude"><img class="icon" src="assets/download.png"></button>
-                <button id="reset" class="extrude" onclick="showResetPopup();"><img class="icon" src="assets/restart.png"></button>
+                <button id="reset" class="extrude" onclick="tryReset(this);"><img class="icon" src="assets/restart.png"></button>
             </div>
             <div id="elements">
             </div>
@@ -42,11 +45,6 @@
             <div id="element_select" hidden="true">
                 <div id="selectable_elements"></div>
                 <br>
-                <button style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
-                <button onclick="hidePopups();" style="background-color: red;"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
-            </div>
-            <div id="confirm_reset" hidden="true">
-                <h2>Are you sure you want to reset? All changes will be lost.</h2>
                 <button style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
                 <button onclick="hidePopups();" style="background-color: red;"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
             </div>
