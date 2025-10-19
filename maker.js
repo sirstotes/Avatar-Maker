@@ -152,7 +152,7 @@ function showElementLoadPopup() {
     document.getElementById("popup").style = "";
     document.getElementById("element_load").hidden = false;
 }
-let packURL = "example/";
+let packURL = "examplePack/";
 function changeMaker() {
     let value = document.getElementById("maker_url").value;
     fetch(value+"pack.json").then(result => loadPack(value).then(elements => onLoad(elements)))
@@ -316,7 +316,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
     } else {
         packURL = document.getElementById("maker_url").value;
     }
-    loadPack("example/").then(elements => onLoad(elements));
+    loadPack(packURL).then(elements => onLoad(elements)).catch(error => {
+        packURL = document.getElementById("maker_url").value;
+        loadPack(packURL).then(elements => onLoad(elements))
+    });
 });
 
 window.addEventListener("beforeunload", function(e){
@@ -352,7 +355,7 @@ function onLoad() {
             root.draw(p);
             if(selectedElement != undefined) {
                 let top = selectedElement.getGlobalTranslation().y > pack.canvasHeight*0.75;
-                document.getElementById("controls_position").style = `left: 0vh; top:${top ? 0 : 70}vh; transform:translate(0, ${top ? 0 : -3}em);`;
+                document.getElementById("controls_position").style = `left: 0vh; top:${top ? 0 : 70}vh; transform:translate(0, ${top ? 0 : -5}em);`;
                 document.getElementById("movement_controls").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
                 document.getElementById("color_controls").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
                 document.getElementById("color_picker").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
