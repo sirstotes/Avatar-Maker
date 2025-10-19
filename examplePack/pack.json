@@ -224,7 +224,7 @@
                         "thumbnail": "icons/pants.png",
                         "hideable": true,
                         "cloneable": true,
-                        "selectedImage": 4,
+                        "selectedImage": 12,
                         "image": {
                             "thumbnail": {"x":0, "y":-75, "scale":2},
                             "folder": "bottom"
@@ -236,7 +236,7 @@
                         "thumbnail": "icons/shirt.png",
                         "hideable": true,
                         "cloneable": true,
-                        "selectedImage": 7,
+                        "selectedImage": 30,
                         "image": {
                             "thumbnail": {"x":0, "y":-20, "scale":2},
                             "folder": "top"
@@ -248,7 +248,7 @@
                         "thumbnail": "icons/shoes.png",
                         "hideable": true,
                         "cloneable": true,
-                        "selectedImage": 6,
+                        "selectedImage": 8,
                         "image": {
                             "thumbnail": {"x":0, "y":-150, "scale":2.5},
                             "folder": "shoes"
@@ -260,6 +260,7 @@
                         "thumbnail": "icons/jacket.png",
                         "hideable": true,
                         "cloneable": true,
+                        "selectedImage": 1,
                         "image": {
                             "thumbnail": {"x":0, "y":-20, "scale":2},
                             "folder": "jacket"
@@ -271,7 +272,7 @@
                         "thumbnail": "icons/dress.png",
                         "hideable": true,
                         "cloneable": true,
-                        "selectedImage": 7,
+                        "selectedImage": 2,
                         "image": {
                             "thumbnail": {"x":0, "y":-50, "scale":1.5},
                             "folder": "dress"
