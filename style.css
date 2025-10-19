@@ -1,7 +1,19 @@
-body {
+:root {
+    --background-color: #7194d1;
+    --div-color: #cbced3;
+    --box-shadow-color: rgb(0, 0, 0, 0.25);
+    --button-color: #f1f1f1;
+    --button-disabled-color: #484c50;
+    --button-confirm-color: #157b15;
+    --button-cancel-color: #d82121;
     font-family: 'Courier New', Courier, monospace;
-    background-color: burlywood;
+}
+body {
+    background-color: var(--background-color);
     text-align: center;
+}
+a {
+    color: var(--box-shadow-color);
 }
 #workspace {
     display: flex;
@@ -9,55 +21,58 @@ body {
     margin:auto;
 }
 #workspace > div {
-    background-color: whitesmoke;
-    box-shadow: 0.25em 0.5em rgb(0, 0, 0, 0.25);
-    margin: 1em;
-    padding: 1em;
-    border-radius: 0.3em;
+    background-color: var(--div-color);
+    box-shadow: 5px 10px var(--box-shadow-color);
+    border-radius: var(--border-radius);
 }
 #controls_position {
     position: relative;
     width: 0;
     height: 0;
 }
-.controls {
-    white-space: nowrap;
+.controls_container {
     position: absolute;
 }
-.controls > div {
-    max-width: 24em;
-    margin:auto;
-    margin-bottom: 0.5em;
+.controls {
+    background-color: var(--box-shadow-color);
+    border-radius: var(--border-radius);
+    position: absolute; 
+    left: 0; 
+    right: 0; 
+    margin: auto; 
+    width: fit-content;
 }
 .controls > div > button, .controls > button {
-    box-shadow: 0.1em 0.25em rgb(0, 0, 0, 0.25);
+    box-shadow: 0.20px 5px var(--box-shadow-color);
     cursor: pointer;
 }
-#canvas_container > canvas {
-    border:1px solid black;
-    margin-bottom: 0.5em;
+#canvas_container {
+    background-color: var(--button-color);
 }
 button, input {
-    padding: 0.075em;
-    margin: 0.05em;
-    border: 2px solid black;
-    border-radius: 0.3em;
+    background-color: var(--button-color);
+    border:none;
     text-align: center;
     vertical-align: middle;
+    border-radius: var(--border-radius);
+}
+button:disabled {
+    background-color: var(--button-disabled-color);
 }
 .color {
-    width: 2.5em;
-    height: 2.5em;
     border-radius: 50%;
+    width: 3em;
+    height: 3em;
 }
-.extrude {
+.extrude:not(:disabled) {
     transition: box-shadow 0.1s;
     transition: transform 0.1s;
     cursor: pointer;
+    box-shadow: 0 0 var(--box-shadow-color);
 }
-.extrude:hover {
-    transform: translateY(-0.25em);
-    box-shadow: 0 0.25em;
+.extrude:hover:not(:disabled) {
+    transform: translateY(-5px);
+    box-shadow: 0 5px var(--box-shadow-color);
 }
 #elements {
     display:flex;
@@ -69,16 +84,41 @@ button, input {
 .element > .options > .image {
     grid-area: image;
 }
-.selected {
-    border-color: white;
-}
+
 .icon {
+    width: 3em;
+    height: 3em;
+}
+.image > img {
+    width: 7em;
+    height: 7em;
+}
+.tiny_icon {
     width: 2em;
     height: 2em;
 }
-.image > img {
-    width: 5em;
-    height: 5em;
+#color_preview {
+    width: 7em;
+    height: 3em;
+    margin: auto;
+    border-radius: var(--border-radius);
+}
+input[type="range"] {
+    -webkit-appearance: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+input[type="range"]::-moz-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
 }
 
 #popup {
@@ -91,14 +131,11 @@ button, input {
     justify-content: center;
 }
 #popup > div {
-    max-width: 60em;
     max-height: 100%;
     overflow: hidden;
-    background-color: antiquewhite;
-    border: 3px solid black;
-    border-radius: 0.3em;
-    box-shadow: 0.5em 1em rgb(0, 0, 0, 0.25);
-    padding:1em;
+    background-color: var(--div-color);
+    border-radius: var(--border-radius);
+    box-shadow: 10px 20px var(--box-shadow-color);
     margin:auto;
 }
 #selectable_elements {
@@ -106,32 +143,92 @@ button, input {
     overflow-y: auto;
 }
 #selectable_elements > canvas {
-    border: 3px solid black;
-    border-radius: 0.3em;
-    margin: 0.25em;
-}
-#selectable_elements > canvas.selected {
-    border-color: yellow;
+    border-radius: var(--border-radius);
 }
 
-@media (orientation:landscape) {
+@media (min-aspect-ratio: 5/3) {
     #workspace {
-        max-width: 80em;
+        max-width: 70vw;
+    }
+}
+
+@media (min-aspect-ratio: 2/1) {
+    #workspace {
+        max-width: 60vw;
+    }
+}
+
+@media (min-aspect-ratio: 1) {
+    :root {
+        --border-radius: 1vh;
+    }
+    h1 {
+        margin-top: 1vh;
+        margin-bottom: 0;
+    }
+    h2 {
+        font-size: 2em;
+        margin-top: 0.5vh;
+        margin-bottom: 0.5vh;
+    }
+    button, input {
+        margin: 0.4vh;
+        padding: 0.2vh;
+    }
+    input[type="range"] {
+        width: 50vh;
+        height: 3vh;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+        border: 0.5vh solid var(--button-color);
+        width: 3vh;
+        height: 3vh;
+    }
+    input[type="range"]::-moz-slider-thumb {
+        border: 0.5vh solid var(--button-color);
+        width: 3vh;
+        height: 3vh;
+    }
+    .controls {
+        padding: 1vh;
+    }
+    textarea {
+        width: 60vw;
+        resize: none;
+    }
+    #workspace {
         height: 83vh;
+    }
+    #workspace > div {
+        margin: 2vh;
+        padding: 1vh;
+    }
+    #canvas {
+        max-width: 80vh;
     }
     #canvas_container > canvas {
         height: 70vh;
     }
-    .tiny_icon {
-        width: 1em;
-        height: 1em;
+    .controls_container {
+        height: 70vh;
+    }
+    .selected {
+        border:0.5vh solid var(--button-color);
     }
     #elements {
         flex-direction: column;
         overflow-y: auto;
     }
+    #selectable_elements > canvas {
+        width:25vh;
+        margin:2vh;
+    }
+    #popup > div { 
+        max-width: 60vw;
+        padding: 5vh;
+    }
     .element {
-        margin-bottom: 0.5em;
+        /* margin-bottom: 0.5vh; */
         display:flex;
         flex-direction: row;
     }
@@ -140,6 +237,10 @@ button, input {
         grid-template-areas: 
         'image image image . .'
         'image image image . .';
+    }
+    .options > button, .element > button, .add_element {
+        margin-bottom: 0;
+        margin-top: 0.8vh;
     }
     .element.flex > .options {
         display:flex;
@@ -151,12 +252,12 @@ button, input {
         grid-template-areas: 'image';
     }
     .element.dual > .options {
-        grid-template-areas: 'image image image image .';
+        grid-template-areas: 'image .';
     }
     .element.tri > .options {
         grid-template-areas: 
-        'image image image image .'
-        'image image image image .';
+        'image .'
+        'image .';
     }
     .element.sept > .options {
         grid-template-areas: 
@@ -170,47 +271,142 @@ button, input {
         'image image . . .';
     }
     .element_outline {
-        border-left: 2px solid black;
-        padding-left: 0.5em;
-        margin-bottom: 0.5em;
+        padding-left: 2.5vh;
+        margin-left: 1.7vh;
+        margin-bottom: 1vh;
     }
     .add_element {
-        width:100%;
+        width: calc(100% - 1vh);
         padding: 0;
     }
 }
-@media (orientation:portrait) {
+@media (max-aspect-ratio: 1) {
+    @media(min-aspect-ratio: 0.6) {
+        #canvas_container > canvas {
+            width: 50vw;
+        }
+        .controls_container {
+            width: 50vw;
+        }
+        button, input {
+            margin: 0.3vh;
+            padding: 0.3vh;
+        }
+        .element_outline {
+            padding-bottom: 3.5vh;
+            margin-bottom: 1vw;
+            margin-right: 1vw;
+        }
+        input[type="range"] {
+            width: 50vw;
+            height: 2em;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            border: 0.5vh solid var(--button-color);
+            width: 2em;
+            height: 2em;
+        }
+        input[type="range"]::-moz-slider-thumb {
+            border: 0.5vh solid var(--button-color);
+            width: 2em;
+            height: 2em;
+        }
+    }
+    @media(max-aspect-ratio: 0.6) {
+        .icon {
+            width: 10vw;
+            height: 10vw;
+        }
+        .image > img {
+            width: 15vw;
+            height: 15vw;
+        }
+        .tiny_icon {
+            width: 4vw;
+            height: 4vw;
+        }
+        input[type="range"] {
+            width: 50vw;
+            height: 10vw;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            border: 0.5vh solid var(--button-color);
+            width: 10vw;
+            height: 10vw;
+        }
+        input[type="range"]::-moz-slider-thumb {
+            border: 0.5vh solid var(--button-color);
+            width: 10vw;
+            height: 10vw;
+        }
+        #canvas_container > canvas {
+            width: 88vw;
+        }
+        .controls_container {
+            width: 88vw;
+        }
+        button, input {
+            margin: 0.8vw;
+            padding: 0.5vw;
+        }
+        .element_outline {
+            padding-bottom: 6.5vw;
+            margin-bottom: 1vw;
+            margin-right: 1vw;
+        }
+    }
     h1 {
-        margin-top: 0.5em;
-        margin-bottom: 0em;
+        margin-top: 1vw;
+        margin-bottom: 0;
+    }
+    :root {
+        --border-radius: 1vw;
+        line-height: 1;
+    }
+    textarea {
+        width: 90vw;
+        resize: none;
+    }
+    a {
+        font-size: 2vw;
+    }
+    .controls {
+        padding: 1vw;
     }
     #workspace {
         flex-direction: column;
     }
     #workspace > div {
-        margin: 0.5em;
-    }
-    #canvas_container > canvas {
-        height: 48vh;
-    }
-    .tiny_icon {
-        width: 2em;
-        height: 2em;
+        margin-left: 2vw;
+        margin-right: 2vw;
+        margin-top: 1vw;
+        margin-bottom: 1vw;
+        padding: 2vw;
     }
     #elements {
         overflow-x: auto;
-        height:24vh;
+        height:30vh;
+    }
+    #selectable_elements > canvas {
+        width:25vw;
+        margin:2vw;
+    }
+    #popup > div { 
+        padding: 5vw;
+    }
+    .selected {
+        border:0.5vw solid var(--button-color);
     }
     .element {
-        margin-right: 0.25em;
+        margin-right: 1vw;
         display:flex;
         flex-direction: column-reverse;
     }
     .element > .options {
         flex-grow: 1;
         grid-template-areas: 
-        'image image'
-        '. .';
+        'image image image image'
+        '. . . .';
     }
     .element.flex > .options {
         display:flex;
@@ -219,16 +415,21 @@ button, input {
     .element.singular > .options {
         grid-template-areas: 'image';
     }
-    .element.dual > .options, .element.tri > .options {
+    .element.dual > .options {
         grid-template-areas: 
         'image'
         '.';
     }
-    .element.sept > .options, .element.multi > .options {
+    .element.tri > .options {
+        grid-template-areas: 
+        'image image'
+        '. .';
+    }
+    /* .element.sept > .options, .element.multi > .options {
         grid-template-areas: 
         'image image image'
         '. . .';
-    }
+    } */
     .element > .side {
         display:flex;
         flex-direction: row;
@@ -238,12 +439,5 @@ button, input {
     }
     .element_children {
         display:flex;
-    }
-    .element_outline {
-        border-left: 2px solid black;
-        border-bottom: 2px solid black;
-        padding-left: 0.5em;
-        padding-bottom: 0.5em;
-        margin-right: 0.5em;
     }
 }

@@ -1,5 +1,8 @@
 class ElementContainer {
-    constructor(json = {}, base = true, outermost = false) {
+    constructor() {
+
+    }
+    async init(json = {}, base = true, outermost = false) {
         this.name = "";
         this.base = base;
         this.outermost = outermost;
@@ -10,7 +13,7 @@ class ElementContainer {
         this.incrementTransform = new Transform(vec(1, 1), vec(0.01, 0.01), 1);
         this.collapsible = false;
         this.collapsed = false;
-        this.shouldCreateNode = true;
+        this.shouldCreateNode = !outermost;
         this.reorderable = false;
         this.controls = {
             moveable: {
@@ -75,8 +78,21 @@ class ElementContainer {
                 icon2: "<img class='icon' src='assets/hidden.png'>",
                 getOnclick: function(element) {
                     return function() {
+                        updateDraw = true;
                         element.toggleHidden();
                         this.innerHTML = element.getIconForOption("hideable");
+                    }
+                },
+                getJSON: function(element) {
+                    if(!element.controls.hideable.allowEdit) {
+                        return;
+                    }
+                    return {
+                        "key":"hideable",
+                        "value": {
+                            "allowEdit": element.controls.hideable.allowEdit,
+                            "hidden": element.isHidden()
+                        }
                     }
                 }
             },
@@ -86,6 +102,7 @@ class ElementContainer {
                 icon: "<img class='icon' src='assets/clone.png'>",
                 getOnclick: function(element) {
                     return function() {
+                        updateDraw = true;
                         element.clone();
                     }
                 }
@@ -100,17 +117,23 @@ class ElementContainer {
                         this.innerHTML = "<img class='icon' src='assets/check.png' style='filter:invert(1);'>";
                         this.onclick = function() {
                             element.parent.removeChild(element);
+                            updateDraw = true;
                         }
                         if(trashedButton != undefined) {
                             refreshTrashedButton();
                         }
                         trashedButton = this;
                     }
+                },
+                getJSON: function(element) {
+                    return {
+                        "key":"removeable",
+                        "value": element.controls.removeable.allowEdit
+                    }
                 }
             }
         };
-
-        this.processJSON(json);
+        await this.processJSON(json);
         if(this.name != "") {
             elementLookupTable[this.name] = this;
         }
@@ -118,14 +141,21 @@ class ElementContainer {
     canHaveChildren() {
         return true;
     }
+    canMoveUp() {
+        return this.parent.children.indexOf(this) > 0;
+    }
+    canMoveDown() {
+        return this.parent.children.indexOf(this) < this.parent.children.length - 1;
+    }
     isHidden() {
         return this.controls.hideable.hidden;
     }
-    getClone(options) {
-        let e = new this.constructor(options);
-        this.children.forEach(child => {
-            e.addChild(child.getClone(child.exportOptions()));
-        });
+    async getClone(options) {
+        let e = new this.constructor();
+        await e.init(options);
+        for(let i = 0; i < this.children.length; i ++) {
+            e.addChild(await this.children[i].getClone(this.children[i].exportOptions()));
+        }
         e.base = false;
         addedElements.push(e);
         return e;
@@ -188,22 +218,22 @@ class ElementContainer {
         this.displayTransform.apply(p);
         p.scale(this.controls.horizontalFlip.flip, this.controls.verticalFlip.flip);
     }
-    clone() {
+    async clone() {
         const options = this.exportOptions();
         options.removeable = true;
         if(this.name != "") {
             options.name = this.name;
         }
-        this.parent.addChildAfter(this, this.getClone(options));
+        this.parent.addChildAfter(this, await this.getClone(options));
         this.parent.refreshChildrenNode();
     }
-    cloneTo(parentElementContainer) {
+    async cloneTo(parentElementContainer) {
         const options = this.exportOptions();
         options.removeable = true;
         if(this.name != "") {
             options.name = this.name;
         }
-        parentElementContainer.addChild(this.getClone(options));
+        parentElementContainer.addChild(await this.getClone(options));
         parentElementContainer.refreshChildrenNode();
     }
     createChildrenNode() {
@@ -231,7 +261,7 @@ class ElementContainer {
     createMainButton() {
         const mainButton = document.createElement("button");
         mainButton.classList.add("image");
-        mainButton.innerHTML = `<h3>${this.name}</h3>`;
+        mainButton.innerHTML = `<h2>${this.name}</h2>`;
         return mainButton;
     }
     createNode() {
@@ -258,12 +288,12 @@ class ElementContainer {
         if(this.collapsible) {
             const collapseButton = document.createElement("button");
             collapseButton.classList.add("extrude");
-            collapseButton.innerHTML = this.collapsed ? "<img class='tiny_icon' src='assets/down.png'>" : "<img class='tiny_icon' src='assets/up.png'>";
+            collapseButton.innerHTML = `<img class='tiny_icon' src='${this.collapsed ? getPrevIcon() : getNextIcon()}'>`;
             collapseButton.onclick = function() {
                 if(thisInstance.toggleCollapse()) {
-                    this.innerHTML = "<img class='tiny_icon' src='assets/down.png'>";
+                    this.innerHTML = `<img class='tiny_icon' src='${getPrevIcon()}'>`;
                 } else {
-                    this.innerHTML = "<img class='tiny_icon' src='assets/up.png'>";
+                    this.innerHTML = `<img class='tiny_icon' src='${getNextIcon()}'>`;
                 }
             };
             element.appendChild(collapseButton);
@@ -278,6 +308,10 @@ class ElementContainer {
             if(option.allowEdit) {
                 const button = document.createElement("button");
                 button.classList.add("extrude");
+                if(option.hasOwnProperty("getStyle")) {
+                    button.getStyle = option.getStyle;
+                    button.stye = option.getStyle(this);
+                }
                 button.innerHTML = this.getIconForOption(key);
                 button.defaultInnerHTML = option.icon;
                 if(option.getOnclick != undefined) {
@@ -292,17 +326,19 @@ class ElementContainer {
             sideDiv.classList.add("side");
             const button1 = document.createElement("button");
             button1.classList.add("extrude");
-            button1.innerHTML = "<img class='icon' src='assets/up.png'>";
+            button1.innerHTML = `<img class='tiny_icon' src='${getPrevIcon()}'>`;
             button1.onclick = function() {
                 thisInstance.moveUp();
             }
+            button1.disabled = !thisInstance.canMoveUp();
             sideDiv.appendChild(button1);
             const button2 = document.createElement("button");
             button2.classList.add("extrude");
-            button2.innerHTML = "<img class='icon' src='assets/down.png'>";
+            button2.innerHTML = `<img class='tiny_icon' src='${getNextIcon()}'>`;
             button2.onclick = function() {
                 thisInstance.moveDown();
             }
+            button2.disabled = !thisInstance.canMoveDown();
             sideDiv.appendChild(button2);
             element.appendChild(sideDiv);
         }
@@ -333,7 +369,9 @@ class ElementContainer {
         Object.keys(this.controls).forEach(key => {
             if(this.controls[key].hasOwnProperty("getJSON")) {
                 let j = this.controls[key].getJSON(this);
-                json[j.key] = j.value;
+                if(j != undefined) {
+                    json[j.key] = j.value;
+                }
             }
         });
         return json;
@@ -398,14 +436,16 @@ class ElementContainer {
                 }
             }
         }
+        return pos+1 < this.parent.children.length - 1;
     }
     preload() {
         this.children.forEach(child => {
             child.preload();
         });
     }
-    processJSON(json, refreshNode = false) {
-        Object.keys(json).forEach(key => {
+    async processJSON(json, refreshNode = false) {
+        for(let i = 0; i < Object.keys(json).length; i ++) {
+            let key = Object.keys(json)[i];
             if (key == "transform") {
                 let transformationTypes = ["translation", "rotation", "scale"];
                 transformationTypes.forEach(transformationType => {
@@ -430,25 +470,29 @@ class ElementContainer {
                 });
                 this.displayTransform = this.savedTransform.getCopy();
             } if (key == "children") {
-                json.children.forEach(child => {
+                for(let j = 0; j < json.children.length; j ++) {
+                    let child = json.children[j];
                     let newChild;
                     if(child.hasOwnProperty("image")) {
-                        newChild = new Element(child);
+                        newChild = new Element();
                     } else {
-                        newChild = new ElementContainer(child);
+                        newChild = new ElementContainer();
                     }
+                    await newChild.init(child);
                     this.addChild(newChild);
-                });
+                }
             } else if (key == "addableChildren") {
-                json.addableChildren.forEach(child => {
+                for(let j = 0; j < json.addableChildren.length; j ++) {
+                    let child = json.addableChildren[j];
                     let newChild;
                     if(child.hasOwnProperty("image")) {
-                        newChild = new Element(child, false);
+                        newChild = new Element();
                     } else {
-                        newChild = new ElementContainer(child, false);
+                        newChild = new ElementContainer();
                     }
+                    await newChild.init(child, false);
                     this.addableChildren.push(newChild);
-                });
+                }
             } else if (this.controls.hasOwnProperty(key)) {
                 if(typeof json[key] === "boolean") {
                     this.controls[key].allowEdit = json[key];
@@ -469,7 +513,7 @@ class ElementContainer {
             } else if (this.hasOwnProperty(key)) {
                 this[key] = json[key];
             }
-        });
+        }
         if(refreshNode) {
             this.refreshNode();
         }
@@ -496,6 +540,9 @@ class ElementContainer {
     removeChild(element) {
         if(this.children.includes(element)) {
             this.children.splice(this.children.indexOf(element), 1);
+            if(!element.base) {
+                addedElements.splice(addedElements.indexOf(element), 1);
+            }
             if(element.node != undefined) {
                 this.childrenNode.removeChild(element.node);
             }

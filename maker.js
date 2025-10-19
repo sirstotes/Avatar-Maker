@@ -2,6 +2,7 @@ let selectedElement = undefined;
 let toggledButton = undefined;
 let trashedButton = undefined;
 let selectingSketches = [];
+let selectedHSL = {h:0, s:0, l:0};
 function cancelButton(button) {
     toggledButton = button;
     toggledButton.style = "background-color:red;";
@@ -28,10 +29,10 @@ function showColorPalette() {
     if(selectedElement != undefined) {
         const picker = document.getElementById("color_controls");
         picker.hidden = false;
-        picker.getElementsByTagName("div")[0].innerHTML = "";
+        document.getElementById("palette_container").innerHTML = "";
         selectedElement.getColorOptions().forEach(color => {
             const button = document.createElement("button");
-            button.classList.add("color");
+            button.classList.add("color", "extrude");
             if(color == selectedElement.getDisplayColor()) {
                 button.classList.add("selected");
             }
@@ -42,22 +43,31 @@ function showColorPalette() {
                 selectedElement.setDisplayColor(button.color);
                 refreshColorPalette();
             };
-            picker.getElementsByTagName("div")[0].appendChild(button);
+            document.getElementById("palette_container").appendChild(button);
         });
         picker.getElementsByClassName("custom").forEach(node => {
             node.hidden = !selectedElement.controls.colors.customColorsAllowed;
         });
     }
+    updateDraw = true;
+}
+function getPickedColor() {
+    return `hsl(${selectedHSL.h}, ${selectedHSL.s}%, ${selectedHSL.l}%)`;
 }
 function showColorPicker() {
     if (selectedElement != undefined) {
-        document.getElementById("color_picker_input").value = selectedElement.getDisplayColor();
+        selectedHSL = getDisplayColorAsHSL(selectedElement.getDisplayColor());
+        document.getElementById("color_preview").style = `background-color:${selectedElement.getDisplayColor()};`;
+        document.getElementById("color_picker_hue").value = selectedHSL.h;
+        document.getElementById("color_picker_saturation").value = selectedHSL.s;
+        document.getElementById("color_picker_lightness").value = selectedHSL.l;
+        setSliderColors(selectedHSL);
     }
     hideControls(false);
     document.getElementById("color_picker").hidden = false;
 }
 function refreshColorPalette() {
-    const container = document.getElementById("color_controls").getElementsByTagName("div")[0];
+    const container = document.getElementById("palette_container");
     container.childNodes.forEach(button => {
         if(button.color == selectedElement.getDisplayColor() && button.color != undefined) {
             button.classList.add("selected");
@@ -65,6 +75,7 @@ function refreshColorPalette() {
             button.classList.remove("selected");
         }
     });
+    updateDraw = true;
 }
 function showMovementControls() {
     const controls = document.getElementById("movement_controls");
@@ -83,6 +94,7 @@ function moveElement(x, y) {
     if(selectedElement != undefined) {
         selectedElement.displayTransform.translate(x * selectedElement.incrementTransform.translation.x, y * selectedElement.incrementTransform.translation.y);
     }
+    updateDraw = true;
 }
 function saveCanvas() {
     if(p != undefined && pack != undefined) {
@@ -93,11 +105,13 @@ function scaleElement(x, y) {
     if(selectedElement != undefined) {
         selectedElement.displayTransform.addScale(x * selectedElement.incrementTransform.scale.x, y * selectedElement.incrementTransform.scale.x);
     }
+    updateDraw = true;
 }
 function rotateElement(r) {
     if(selectedElement != undefined) {
         selectedElement.displayTransform.rotate(r * selectedElement.incrementTransform.rotation);
     }
+    updateDraw = true;
 }
 // function refreshElementSelect() {
 //     const container = document.getElementById("selectable_elements");
@@ -119,6 +133,7 @@ function showImageSelectPopup(element) {
                 element.selectImage(image);
                 clearExtraCanvases();
                 hidePopups();
+                updateDraw = true;
             }
         })));
     });
@@ -155,7 +170,7 @@ function showElementLoadPopup() {
 let packURL = "examplePack/";
 function changeMaker() {
     let value = document.getElementById("maker_url").value;
-    fetch(value+"pack.json").then(result => loadPack(value).then(elements => onLoad(elements)))
+    fetch(value+"pack.json").then(result => loadPack(value).then(onLoad))
     .catch(error => console.error(error));
 }
 function tryReset(button) {
@@ -165,20 +180,76 @@ function tryReset(button) {
     button.innerHTML = "<img class='icon' src='assets/check.png' style='filter:invert(1);'>";
     button.onclick = function() {
         localStorage.setItem("changes", undefined);
-        loadPack(packURL).then(elements => onLoad(elements));
+        loadPack(packURL).then(onLoad);
         refreshTrashedButton();
     }
     if(trashedButton != undefined) {
         refreshTrashedButton();
     }
+    hidePopups();
+    hideControls();
     trashedButton = button;
     // document.getElementById("popup").style = "";
     // document.getElementById("confirm_reset").hidden = false;
 }
-function updateSelectedColor(color) {
-    if(selectedElement != undefined) {
-        selectedElement.setDisplayColor(color);
+function rgbToHsl(r, g, b) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    let max = Math.max(r, g, b),
+        min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+        h = s = 0; // achromatic
+    } else {
+        let d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+        switch (max) {
+            case r:
+                h = (g - b) / d + (g < b ? 6 : 0);
+                break;
+            case g:
+                h = (b - r) / d + 2;
+                break;
+            case b:
+                h = (r - g) / d + 4;
+                break;
+        }
+        h /= 6;
     }
+
+    return {h: h * 360, s: s * 100, l: l * 100}; // Return HSL as [degrees, percentage, percentage]
+}
+function getDisplayColorAsHSL(color) {
+    document.getElementById("color_preview").style = `background-color:${color};`;
+    let nums = [...window.getComputedStyle(document.getElementById("color_preview")).getPropertyValue('background-color').matchAll(/(\d+)/g)];
+    return rgbToHsl(nums[0][0], nums[1][0], nums[2][0]);
+}
+function setSliderColors(hsl) {
+    let gradient = `background:linear-gradient(to right, hsl(0, ${hsl.s}%, ${hsl.l}%)`;
+    for(let i = 10; i < 360; i += 10) {
+        gradient += `, hsl(${i}, ${hsl.s}%, ${hsl.l}%)`;
+    }
+    gradient += ");"
+    document.getElementById("color_picker_hue").style = gradient;
+    document.getElementById("color_picker_saturation").style = `background:linear-gradient(to right, hsl(${hsl.h}, 0%, ${hsl.l}%), hsl(${hsl.h}, 100%, ${hsl.l}%));`;
+    document.getElementById("color_picker_lightness").style = `background:linear-gradient(to right, hsl(${hsl.h}, ${hsl.s}%, 0%), hsl(${hsl.h}, ${hsl.s}%, 50%), hsl(${hsl.h}, ${hsl.s}%, 100%));`;
+}
+function updateSelectedColor() {
+    if(selectedElement != undefined) {
+        let h = document.getElementById("color_picker_hue").value;
+        let s = document.getElementById("color_picker_saturation").value;
+        let l = document.getElementById("color_picker_lightness").value;
+        selectedHSL = {h: h, s: s, l: l};
+        let color = `hsl(${selectedHSL.h}, ${selectedHSL.s}%, ${selectedHSL.l}%)`;
+        selectedElement.setDisplayColor(color);
+        document.getElementById("color_preview").style = `background-color:${color};`;
+        setSliderColors(selectedHSL);
+    }
+    updateDraw = true;
 }
 function hidePopups() {
     document.getElementById("popup").style = "display:none;";
@@ -194,7 +265,11 @@ function hideControls(clear = true) {
 
     if(clear) {
         if(toggledButton != undefined) {
-            toggledButton.style = "";
+            if(toggledButton.hasOwnProperty("getStyle")) {
+                toggledButton.style = toggledButton.getStyle(selectedElement);
+            } else {
+                toggledButton.style = "";
+            }
             toggledButton.innerHTML = toggledButton.defaultInnerHTML;
             toggledButton.onclick = toggledButton.defaultOnclick;
             toggledButton = undefined;
@@ -205,6 +280,7 @@ function hideControls(clear = true) {
         }
         selectedElement = undefined;
     }
+    updateDraw = true;
 }
 function hideColorControls(save) {
     if(save) {
@@ -214,9 +290,8 @@ function hideColorControls(save) {
 }
 function hideColorPicker(save) {
     if(save) {
-        const color = document.getElementById("color_picker_input").value;
-        selectedElement.addColorOption(color);
-        selectedElement.setDisplayColor(color);
+        selectedElement.addColorOption(getPickedColor());
+        selectedElement.setDisplayColor(getPickedColor());
     }
     hideControls(false);
     showColorPalette();
@@ -228,16 +303,16 @@ function hideMovementControls(save) {
     hideControls();
 }
 function removeSelectedColor() {
-    selectedElement.removeColorOption(selectedElement.getDisplayColor());
-
-    const container = document.getElementById("color_controls").getElementsByTagName("div")[0];
+    const container = document.getElementById("palette_container");
     container.childNodes.forEach(button => {
         if(button.color == selectedElement.getDisplayColor()) {
             container.removeChild(button);
         }
     });
+
+    selectedElement.removeColorOption(selectedElement.getDisplayColor());
 }
-function loadPack(url) {
+async function loadPack(url) {
     if(p != undefined) {
         p.remove();
     }
@@ -245,18 +320,16 @@ function loadPack(url) {
     addedElements = [];
     document.getElementById("canvas_container").innerHTML = "";
     document.getElementById("elements").innerHTML = "";
-    return fetch(url+"pack.json")
-        .then((response) => response.json())
-        .then((json) => {
-            pack = {
-                name: json.name,
-                canvasWidth: json.canvasWidth,
-                canvasHeight: json.canvasHeight
-            };
-            root = new ElementContainer(json.root, true, true);
-        });
+    let json = await fetch(url+"pack.json").then((response) => response.json());
+    pack = {
+        name: json.name,
+        canvasWidth: json.canvasWidth,
+        canvasHeight: json.canvasHeight
+    };
+    root = new ElementContainer();
+    await root.init(json.root, true, true);
 }
-function loadChanges(changes) {
+async function loadChanges(changes) {
     try {
         let parsed = JSON.parse(changes);
         parsed.editedElements.forEach(element => {
@@ -264,13 +337,15 @@ function loadChanges(changes) {
                 elementLookupTable[element.name].processJSON(element, true);
             }
         });
-        parsed.addedElements.forEach(element => {
+        for(let i = 0; i < parsed.addedElements.length; i ++) {
+            let element = parsed.addedElements[i];
             if(elementLookupTable.hasOwnProperty(element.name) && elementLookupTable.hasOwnProperty(element.parentName)) {
-                let newElement = elementLookupTable[element.name].getClone(elementLookupTable[element.name].exportOptions());
-                newElement.processJSON(element, false);
+                let newElement = await elementLookupTable[element.name].getClone(elementLookupTable[element.name].exportOptions());
+                await newElement.processJSON(element, false);
                 elementLookupTable[element.parentName].addChild(newElement);
             }
-        });
+        }
+        updateDraw = true;
     } catch(error) {
         console.error(error);
     }
@@ -296,12 +371,31 @@ function showElementExportPopup() {
     document.getElementById("element_export").hidden = false;
     document.getElementById("export_json").innerHTML = JSON.stringify(getJSON());
 }
+function copyChanges(button) {
+    navigator.clipboard.writeText(JSON.stringify(getJSON()));
+    button.innerHTML = "<img class='icon' src='assets/check.png'>";
+    setTimeout(function() {
+        button.innerHTML = "<img class='icon' src='assets/clone.png'>";
+    }, 1000);
+}
 function downloadChanges() {
     p.save(getJSON(), "exported.json");
 }
 function saveChangesToLocalStorage() {
     localStorage.setItem("packURL", packURL);
     localStorage.setItem("changes", JSON.stringify(getJSON()));
+}
+function getPrevIcon() {
+    if(window.innerWidth / window.innerHeight < 5/4) {
+        return "assets/left.png";
+    }
+    return "assets/up.png";
+}
+function getNextIcon() {
+    if(window.innerWidth / window.innerHeight < 5/4) {
+        return "assets/right.png";
+    }
+    return "assets/down.png";
 }
 
 document.addEventListener("click", function(event) {
@@ -316,9 +410,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
     } else {
         packURL = document.getElementById("maker_url").value;
     }
-    loadPack(packURL).then(elements => onLoad(elements)).catch(error => {
+    loadPack(packURL).then(onLoad)
+    .catch(error => {
+        console.error(error);
         packURL = document.getElementById("maker_url").value;
-        loadPack(packURL).then(elements => onLoad(elements))
+        loadPack(packURL).then(onLoad);
     });
 });
 
@@ -331,10 +427,11 @@ let pack;
 let root;
 let elementLookupTable = {};
 let addedElements = [];
+let updateDraw = true;
 
-function onLoad() {
+async function onLoad() {
     if(localStorage.getItem("changes") != undefined) {
-        loadChanges(localStorage.getItem("changes"));
+        await loadChanges(localStorage.getItem("changes"));
     }
     root.addNodesTo(document.getElementById("elements"));
     p = new p5(p => {
@@ -343,23 +440,41 @@ function onLoad() {
         }
         p.setup = function() {
             let canvas = p.createCanvas(pack.canvasWidth, pack.canvasHeight);
+            canvas.removeAttribute("style");
             canvas.parent('canvas_container');
             p.angleMode(p.DEGREES);
             p.imageMode(p.CENTER);
             p.rectMode(p.CENTER);
             root.setup(p);
-            document.getElementById("canvas_container").childNodes[0].style = "";
+            document.getElementsByClassName("controls_container").forEach(element => {
+                element.style = `aspect-ratio:${pack.canvasWidth}/${pack.canvasHeight};`;
+            });
+            updateDraw = true;
         }
         p.draw = function() {
-            p.clear();
-            root.draw(p);
-            if(selectedElement != undefined) {
-                let top = selectedElement.getGlobalTranslation().y > pack.canvasHeight*0.75;
-                document.getElementById("controls_position").style = `left: 0vh; top:${top ? 0 : 70}vh; transform:translate(0, ${top ? 0 : -5}em);`;
-                document.getElementById("movement_controls").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
-                document.getElementById("color_controls").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
-                document.getElementById("color_picker").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
-                selectedElement.drawBoundingBox(p);
+            if(updateDraw) {
+                updateDraw = false;
+                p.clear();
+                root.draw(p);
+                if(selectedElement != undefined) {
+                    if(selectedElement.getGlobalTranslation().y > pack.canvasHeight*0.75) {
+                        document.getElementsByClassName("controls").forEach(element => {
+                            element.style = "";
+                        });
+                    } else {
+                        document.getElementsByClassName("controls").forEach(element => {
+                            element.style = "bottom:0;";
+                        });
+                    }
+                    // document.getElementById("controls_position").style = `left: 0vh; top:${top ? 0 : 70}vh; transform:translate(0, ${top ? 0 : -5}em);`;
+                    // document.getElementById("movement_controls").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
+                    // document.getElementById("color_controls").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
+                    // document.getElementById("color_picker").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
+                    selectedElement.drawBoundingBox(p);
+                }
+            }
+            if (p.frameCount%50 == 0) {
+                updateDraw = true;
             }
         }
     });

@@ -12,6 +12,13 @@ class ImageLayer {
     load(p) {
         this.img = p.loadImage(this.source);
     }
+    draw(p, tintColor) {
+        if(this.applyTint) {
+            p.tint(tintColor);
+        }
+        p.image(this.img, 0, 0);
+        p.noTint();
+    }
 }
 class LayeredImage {
     constructor(packURL, layers, thumbnail = {scale:1, x:0, y:0}) {
@@ -26,13 +33,7 @@ class LayeredImage {
         this.thumbnail = thumbnail;
     }
     draw(p, tintColor) {
-        this.layers.forEach(layer => {
-            if(layer.applyTint) {
-                p.tint(tintColor);
-            }
-            p.image(layer.img, 0, 0);
-            p.noTint();
-        })
+        this.layers.forEach(layer => layer.draw(p, tintColor))
     }
     getWidth() {
         if(this.layers != undefined) {
@@ -63,6 +64,7 @@ class LayeredImage {
                     canvas.addClass("selected");
                 }
                 canvas.parent('selectable_elements');
+                canvas.removeAttribute("style");
                 p.background(255);
             }
             p.draw = function() {

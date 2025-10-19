@@ -1,6 +1,9 @@
 class Element extends ElementContainer {
-    constructor(json = {}, base = true) {
-        super({}, base);
+    constructor() {
+        super();
+    }
+    async init(json = {}, base = true) {
+        await super.init({}, base);
         this.controls.colors = {
             allowEdit: false,
             displayTint: "white",
@@ -27,6 +30,12 @@ class Element extends ElementContainer {
                         "default": element.controls.colors.displayTint
                     }
                 }
+            },
+            getStyle: function(element) {
+                if(element.getDisplayColor() != "white") {
+                    return `background-color:${element.getDisplayColor()};`;
+                }
+                return "";
             }
         };
         this.parent = undefined;
@@ -35,23 +44,12 @@ class Element extends ElementContainer {
         this.images = [];
         this.selectedImage = 0;
         this.childrenNode = undefined;
-        this.processJSON(json);
+        await this.processJSON(json);
+        console.log("INITIALIZING ELEMENT: "+(this.name||"unnamed"));
         if(this.name != "") {
             elementLookupTable[this.name] = this;
         }
 
-        if(this.controls.colors.displayTint == "random") {
-            this.setDisplayColor(this.controls.colors.palette[Math.floor(Math.random() * this.controls.colors.palette.length)]);
-            this.saveDisplayColor();
-        }
-        if(this.controls.colors.displayTint instanceof Object) {
-            if(this.controls.colors.displayTint.hasOwnProperty("copy") && elementLookupTable.hasOwnProperty(this.controls.colors.displayTint.copy)) {
-                this.setDisplayColor(elementLookupTable[this.controls.colors.displayTint.copy].getDisplayColor());
-            } else {
-                this.setDisplayColor("white");
-            }
-            this.saveDisplayColor();
-        }
         if(this.controls.colors.palette.hasOwnProperty("copy")) {
             if(elementLookupTable.hasOwnProperty(this.controls.colors.palette.copy)) {
                 this.controls.colors.palette = elementLookupTable[this.controls.colors.palette.copy].controls.colors.palette;
@@ -86,6 +84,18 @@ class Element extends ElementContainer {
         return this.images[this.getImageNumber()];
     }
     getDisplayColor() {
+        if(this.controls.colors.displayTint == "random") {
+            this.setDisplayColor(this.controls.colors.palette[Math.floor(Math.random() * this.controls.colors.palette.length)]);
+            this.saveDisplayColor();
+        }
+        if(this.controls.colors.displayTint instanceof Object) {
+            if(this.controls.colors.displayTint.hasOwnProperty("copy") && elementLookupTable.hasOwnProperty(this.controls.colors.displayTint.copy)) {
+                this.setDisplayColor(elementLookupTable[this.controls.colors.displayTint.copy].getDisplayColor());
+            } else {
+                this.setDisplayColor("white");
+            }
+            this.saveDisplayColor();
+        }
         return this.controls.colors.displayTint;
     }
     getImageNumber() {
@@ -98,7 +108,9 @@ class Element extends ElementContainer {
         return this.selectedImage;
     }
     addColorOption(color) {
-        this.controls.colors.palette.push(color);
+        if(!this.getColorOptions().includes(color)) {
+            this.getColorOptions().push(color);
+        }
     }
     createMainButton() {
         const mainButton = document.createElement("button");
@@ -121,12 +133,13 @@ class Element extends ElementContainer {
     cycleCurrentImage() {
         this.selectedImage ++;
         this.selectedImage = this.selectedImage%this.images.length;
-        console.log(this.selectedImage);
     }
     draw(p) {
         if(!this.isHidden()) {
             this.applyTransforms(p);
-            this.getCurrentImage().draw(p, this.getDisplayColor());
+            if(this.images.length > 0) {
+                this.getCurrentImage().draw(p, this.getDisplayColor());
+            }
             p.resetMatrix();
             super.draw(p);
         }
@@ -136,8 +149,9 @@ class Element extends ElementContainer {
         p.noFill();
         p.drawingContext.setLineDash([5 + p.sin(p.frameCount/10)*2, 10 - p.sin(p.frameCount/10)*2])
         p.strokeWeight(3);
-        p.stroke(255);
+        p.stroke(0);
         p.rect(0, 0, this.getCurrentImage().getWidth(), this.getCurrentImage().getHeight());
+        p.rect(0, 0, this.getCurrentImage().getWidth()+20, this.getCurrentImage().getHeight()+20);
         p.resetMatrix();
     }
     exportJSON() {
@@ -150,8 +164,10 @@ class Element extends ElementContainer {
         this.resetDisplayColor();
     }
     removeColorOption(color) {
-        if(this.getColorOptions().includes(color)) {
-            this.getColorOptions().splice(this.getColorOptions().indexOf(color), 1);
+        for(let i = this.getColorOptions().length-1; i > -1; i --) {
+            if(this.getColorOptions()[i] == color) {
+                this.getColorOptions().splice(i, 1);
+            }
         }
     }
     resetDisplayColor() {
@@ -171,6 +187,7 @@ class Element extends ElementContainer {
                 this.controls.colors = elementLookupTable[this.controls.colors.copy].controls.colors;
             }
         }
+        console.log("LOADING IMAGES FOR: "+this.name);
         this.images.forEach(image => {
             image.load(p);
         });
@@ -179,9 +196,10 @@ class Element extends ElementContainer {
     setDisplayColor(color) {
         this.controls.colors.displayTint = color;
     }
-    processJSON(json, refreshNode = false) {
-        super.processJSON(json, refreshNode);
-        Object.keys(json).forEach(key => {
+    async processJSON(json, refreshNode = false) {
+        await super.processJSON(json, refreshNode);
+        for(let i = 0; i < Object.keys(json).length; i ++) {
+            let key = Object.keys(json)[i];
             const option = json[key];
             if (key == "image") {
                 this.images = [];
@@ -192,10 +210,34 @@ class Element extends ElementContainer {
                 } else if(option.hasOwnProperty("variant")) {
                     this.images.push(new LayeredImage(packURL, option.variant, option.thumbnail));
                 }
+                if(option.hasOwnProperty("folder")) {
+                    let urls = await getDirectory(packURL+option.folder);
+                    console.log("LOADING IMAGE URLS FROM FOLDER: "+option.folder);
+                    urls.forEach(url => {
+                        this.images.push(new LayeredImage("", [url], option.thumbnail));
+                    })
+                }
             }
-        });
+        }
         if(refreshNode) {
             this.refreshNode();
         }
     }
+}
+
+async function getDirectory(dirname) {
+  let response = await fetch(dirname);
+  let str = await response.text();
+  let el = document.createElement('html');
+  el.innerHTML = str;
+
+  // this parse will work for http-server and may have to be modified for other
+  // servers. Inspect the returned string to determine the proper parsing method
+  let list = el.getElementsByTagName("ul")[0].getElementsByTagName("li");
+  let arr = [];
+  for (i = 0; i < list.length; i++) {
+    arr[i] = list[i].getElementsByTagName("a")[0].href;
+  }
+  arr.shift(); // get rid of first result which is the "../" directory reference
+  return(arr);
 }
