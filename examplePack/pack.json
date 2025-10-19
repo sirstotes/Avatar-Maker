@@ -1,11 +1,11 @@
 {
     "name": "Example Pack",
-    "canvasWidth": 1000,
+    "canvasWidth": 800,
     "canvasHeight": 1000,
     "root": {
         "transform": {
             "translation": {
-                "default": {"x": 500, "y": 475}
+                "default": {"x": 400, "y": 475}
             },
             "rotation": {
                 "min":-90,
@@ -72,7 +72,16 @@
                         },
                         "image": {
                             "thumbnail": {"x":15, "y":30, "scale":9},
-                            "folder": "ears"
+                            "variants": [
+                                ["ears/1.png"],
+                                ["ears/2.png"],
+                                ["ears/3.png"],
+                                ["ears/4.png"],
+                                ["ears/5.png"],
+                                ["ears/6.png"],
+                                ["ears/7.png"],
+                                ["ears/8.png"]
+                            ]
                         },
                         "colors": {
                             "copy": "body"
@@ -132,7 +141,15 @@
                                 "thumbnail": "icons/eyelash.png",
                                 "image": {
                                     "thumbnail": {"x":0, "y":30, "scale":9},
-                                    "folder": "eyelashes"
+                                    "variants": [
+                                        ["eyelashes/1.png"],
+                                        ["eyelashes/2.png"],
+                                        ["eyelashes/3.png"],
+                                        ["eyelashes/4.png"],
+                                        ["eyelashes/5.png"],
+                                        ["eyelashes/6.png"],
+                                        ["eyelashes/7.png"]
+                                    ]
                                 }
                             }
                         ]
@@ -152,7 +169,14 @@
                         },
                         "image": {
                             "thumbnail": {"x":0, "y":30, "scale":9},
-                            "folder": "nose"
+                            "variants": [
+                                ["nose/1.png"],
+                                ["nose/2.png"],
+                                ["nose/3.png"],
+                                ["nose/4.png"],
+                                ["nose/5.png"],
+                                ["nose/6.png"]
+                            ]
                         }
                     },
                     {
@@ -170,7 +194,22 @@
                         },
                         "image": {
                             "thumbnail": {"x":0, "y":20, "scale":9},
-                            "folder": "mouth"
+                            "variants": [
+                                ["mouth/1.png"],
+                                ["mouth/2.png"],
+                                ["mouth/3.png"],
+                                ["mouth/4.png"],
+                                ["mouth/5.png"],
+                                ["mouth/6.png"],
+                                ["mouth/7.png"],
+                                ["mouth/8.png"],
+                                ["mouth/9.png"],
+                                ["mouth/10.png"],
+                                ["mouth/11.png"],
+                                ["mouth/12.png"],
+                                ["mouth/13.png"],
+                                ["mouth/14.png"]
+                            ]
                         }
                     },
                     {
@@ -203,7 +242,18 @@
                         "hideable": true,
                         "image": {
                             "thumbnail": {"x":0, "y":35, "scale":5},
-                            "folder": "bangs"
+                            "variants": [
+                                ["bangs/1.webp"],
+                                ["bangs/2.webp"],
+                                ["bangs/3.webp"],
+                                ["bangs/4.webp"],
+                                ["bangs/5.webp"],
+                                ["bangs/6.webp"],
+                                ["bangs/7.webp"],
+                                ["bangs/8.webp"],
+                                ["bangs/9.webp"],
+                                ["bangs/10.webp"]
+                            ]
                         },
                         "colors": {
                             "palette": {"copy":"hair"}
@@ -224,10 +274,18 @@
                         "thumbnail": "icons/pants.png",
                         "hideable": true,
                         "cloneable": true,
-                        "selectedImage": 12,
+                        "selectedImage": 4,
                         "image": {
                             "thumbnail": {"x":0, "y":-75, "scale":2},
-                            "folder": "bottom"
+                            "variants": [
+                                ["bottom/1.webp"],
+                                ["bottom/2.webp"],
+                                ["bottom/3.webp"],
+                                ["bottom/4.webp"],
+                                ["bottom/5.webp"],
+                                ["bottom/6.webp"],
+                                ["bottom/7.webp"]
+                            ]
                         },
                         "colors": true
                     },
@@ -236,10 +294,24 @@
                         "thumbnail": "icons/shirt.png",
                         "hideable": true,
                         "cloneable": true,
-                        "selectedImage": 30,
+                        "selectedImage": 7,
                         "image": {
                             "thumbnail": {"x":0, "y":-20, "scale":2},
-                            "folder": "top"
+                            "variants": [
+                                ["top/1.webp"],
+                                ["top/2.webp"],
+                                ["top/3.webp"],
+                                ["top/4.webp"],
+                                ["top/5.webp"],
+                                ["top/6.webp"],
+                                ["top/7.webp"],
+                                ["top/8.webp"],
+                                ["top/9.webp"],
+                                ["top/10.webp"],
+                                ["top/11.webp"],
+                                ["top/12.webp"],
+                                ["top/13.webp"]
+                            ]
                         },
                         "colors": true
                     },
@@ -248,10 +320,21 @@
                         "thumbnail": "icons/shoes.png",
                         "hideable": true,
                         "cloneable": true,
-                        "selectedImage": 8,
+                        "selectedImage": 6,
                         "image": {
                             "thumbnail": {"x":0, "y":-150, "scale":2.5},
-                            "folder": "shoes"
+                            "variants": [
+                                ["shoes/1.webp"],
+                                ["shoes/2.webp"],
+                                ["shoes/3.webp"],
+                                ["shoes/4.webp"],
+                                ["shoes/5.webp"],
+                                ["shoes/6.webp"],
+                                ["shoes/7.webp"],
+                                ["shoes/8.webp"],
+                                ["shoes/9.webp"],
+                                ["shoes/10.webp"]
+                            ]
                         },
                         "colors": true
                     },
@@ -260,10 +343,20 @@
                         "thumbnail": "icons/jacket.png",
                         "hideable": true,
                         "cloneable": true,
-                        "selectedImage": 1,
                         "image": {
                             "thumbnail": {"x":0, "y":-20, "scale":2},
-                            "folder": "jacket"
+                            "variants": [
+                                ["jacket/1.webp"],
+                                ["jacket/2.webp"],
+                                ["jacket/3.webp"],
+                                ["jacket/4.webp"],
+                                ["jacket/5.webp"],
+                                ["jacket/6.webp"],
+                                ["jacket/7.webp"],
+                                ["jacket/8.webp"],
+                                ["jacket/9.webp"],
+                                ["jacket/10.webp"]
+                            ]
                         },
                         "colors": true
                     },
@@ -272,10 +365,21 @@
                         "thumbnail": "icons/dress.png",
                         "hideable": true,
                         "cloneable": true,
-                        "selectedImage": 2,
+                        "selectedImage": 7,
                         "image": {
                             "thumbnail": {"x":0, "y":-50, "scale":1.5},
-                            "folder": "dress"
+                            "variants": [
+                                ["dress/1.webp"],
+                                ["dress/2.webp"],
+                                ["dress/3.webp"],
+                                ["dress/4.webp"],
+                                ["dress/5.webp"],
+                                ["dress/6.webp"],
+                                ["dress/7.webp"],
+                                ["dress/8.webp"],
+                                ["dress/9.webp"],
+                                ["dress/10.webp"]
+                            ]
                         },
                         "colors": true
                     },
