@@ -1,42 +1,49 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Avatar Maker</title>
+        <title>OpenAvi</title>
         <link type="text/css" rel="stylesheet" href="style.css">
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.min.js"></script>
+        <script type="text/javascript" src="transformer.js"></script>
+        <script type="text/javascript" src="image.js"></script>
+        <script type="text/javascript" src="element_container.js"></script>
+        <script type="text/javascript" src="element.js"></script>
         <script type="text/javascript" src="maker.js"></script>
     </head>
     <body>
-        <h1>Avatar Maker</h1>
+        <h1>OpenAvi v0.1</h1>
         <div id="workspace">
             <div id="canvas">
                 <div id="controls_position">
-                    <div id="movement_controls" class="controls" hidden="true">
-                        <button onclick="hideControls();" id="move_check" style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
-                        <button onclick="moveElement(0, -5);"><img class="icon" src="assets/up.png"></button>
-                        <button onclick="moveElement(0, 5);"><img class="icon" src="assets/down.png"></button>
-                        <button onclick="moveElement(-5, 0);"><img class="icon" src="assets/left.png"></button>
-                        <button onclick="moveElement(5, 0);"><img class="icon" src="assets/right.png"></button>
-                        <button onclick="rotateElement(5);"><img class="icon" src="assets/counterclockwise.png"></button>
-                        <button onclick="rotateElement(-5);"><img class="icon" src="assets/clockwise.png"></button>
-                        <button onclick="scaleElement(-0.1, -0.1);"><img class="icon" src="assets/smaller.png"></button>
+                    <div id="movement_controls" class="controls" hidden="true" style="width:70vh;">
+                        <button onclick="hideMovementControls(true);" id="move_check" style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+                        <button class="translation" onclick="moveElement(0, -1);"><img class="icon" src="assets/up.png"></button>
+                        <button class="translation" onclick="moveElement(0, 1);"><img class="icon" src="assets/down.png"></button>
+                        <button class="translation" onclick="moveElement(-1, 0);"><img class="icon" src="assets/left.png"></button>
+                        <button class="translation" onclick="moveElement(1, 0);"><img class="icon" src="assets/right.png"></button>
+                        <button class="rotation" onclick="rotateElement(-1);"><img class="icon" src="assets/counterclockwise.png"></button>
+                        <button class="rotation" onclick="rotateElement(1);"><img class="icon" src="assets/clockwise.png"></button>
+                        <button class="scale" onclick="scaleElement(1, 1);"><img class="icon" src="assets/bigger.png"></button>
+                        <button class="scale" onclick="scaleElement(-1, -1);"><img class="icon" src="assets/smaller.png"></button>
                     </div>
-                    <div id="color_controls" class="controls" hidden="true">
+                    <div id="color_controls" class="controls" hidden="true" style="width:70vh;">
                         <div></div>
                         <button onclick="hideColorControls(true);" style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
                         <button class="custom" onclick="removeSelectedColor();""><img class="icon" src="assets/delete.png"></button>
                         <button class="custom" onclick="showColorPicker();"><img class="icon" src="assets/plus.png"></button>
                     </div>
-                    <div id="color_picker" class="controls" hidden="true">
+                    <div id="color_picker" class="controls" hidden="true" style="width:70vh;">
                         <input oninput="updateSelectedColor(this.value);" id="color_picker_input" type="color" style="width:3em;height:3em;"><br>
                         <button onclick="hideColorPicker(true);" style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
                         <button onclick="hideColorPicker(false);" style="background-color: red;"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
                     </div>
                 </div>
                 <div id="canvas_container"></div>
-                <br>
-                <button id="save" class="extrude"><img class="icon" src="assets/download.png"></button>
-                <button id="reset" class="extrude" onclick="tryReset(this);"><img class="icon" src="assets/restart.png"></button>
+                <button class="extrude" onclick="showMakerSelectPopup();"><img class="icon" src="assets/browser.png"></button>
+                <button class="extrude" onclick="saveCanvas();"><img class="icon" src="assets/save.png"></button>
+                <button class="extrude" onclick="tryReset(this);"><img class="icon" src="assets/refresh.png"></button>
+                <button class="extrude" onclick="showElementExportPopup();"><img class="icon" src="assets/download.png"></button>
+                <button class="extrude" onclick="showElementLoadPopup();"><img class="icon" src="assets/upload.png"></button>
             </div>
             <div id="elements">
             </div>
@@ -44,13 +51,32 @@
         <div id="popup" style="display:none;">
             <div id="element_select" hidden="true">
                 <div id="selectable_elements"></div>
+                <!-- <br>+
+                <button style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button> -->
+                <button class="extrude" onclick="clearExtraCanvases();hidePopups();" style="background-color: red;"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
+            </div>
+            <div id="element_load" hidden="true">
+                <textarea id="element_json" rows="10" cols="100" type="text">Paste JSON here.</textarea>
                 <br>
-                <button style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
-                <button onclick="hidePopups();" style="background-color: red;"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
+                <button class="extrude" onclick="loadChanges(document.getElementById('element_json').value);" style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+                <button class="extrude" onclick="hidePopups();" style="background-color: red;"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
+            </div>
+            <div id="element_export" hidden="true">
+                <h3>Copy and paste or download the below json to load an in-progress image:</h3>
+                <textarea id="export_json" rows="10" cols="100" type="text"></textarea>
+                <br>
+                <button class="extrude" onclick="downloadChanges();"><img class="icon" src="assets/download.png"></button>
+                <button class="extrude" onclick="hidePopups();" style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+            </div>
+            <div id="maker_select" hidden="true">
+                <input id="maker_url" size="100" type="text" value="./examplePack/">
+                <button class="extrude" onclick="changeMaker();hidePopups();" style="background-color: green;"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+                <button class="extrude" onclick="hidePopups();" style="background-color: red;"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
             </div>
         </div>
         <footer>
-            <a href="https://www.flaticon.com/authors/icon-mania" title="icons">Icons created by Icon mania - Flaticon</a>
+            <a href="https://www.flaticon.com/authors/icon-mania" title="icons">Icons created by Icon Mania and Freepik - Flaticon</a><br>
+            <a href="https://maellemarylloup.itch.io/" title="assets">Example assets created by MaelleMarylloup - Itch.io</a>
         </footer>
     </body>
 </html>

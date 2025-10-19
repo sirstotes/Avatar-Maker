@@ -26,12 +26,16 @@ body {
 }
 .controls > div {
     max-width: 24em;
-    margin:0.5em;
-    overflow: wrap;
+    margin:auto;
+    margin-bottom: 0.5em;
 }
 .controls > div > button, .controls > button {
     box-shadow: 0.1em 0.25em rgb(0, 0, 0, 0.25);
     cursor: pointer;
+}
+#canvas_container > canvas {
+    border:1px solid black;
+    margin-bottom: 0.5em;
 }
 button, input {
     padding: 0.075em;
@@ -40,9 +44,6 @@ button, input {
     border-radius: 0.3em;
     text-align: center;
     vertical-align: middle;
-}
-.selected {
-    border-color: white;
 }
 .color {
     width: 2.5em;
@@ -68,7 +69,9 @@ button, input {
 .element > .options > .image {
     grid-area: image;
 }
-
+.selected {
+    border-color: white;
+}
 .icon {
     width: 2em;
     height: 2em;
@@ -88,7 +91,9 @@ button, input {
     justify-content: center;
 }
 #popup > div {
-    max-width: 40em;
+    max-width: 60em;
+    max-height: 100%;
+    overflow: hidden;
     background-color: antiquewhite;
     border: 3px solid black;
     border-radius: 0.3em;
@@ -96,13 +101,34 @@ button, input {
     padding:1em;
     margin:auto;
 }
+#selectable_elements {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+#selectable_elements > canvas {
+    border: 3px solid black;
+    border-radius: 0.3em;
+    margin: 0.25em;
+}
+#selectable_elements > canvas.selected {
+    border-color: yellow;
+}
 
 @media (orientation:landscape) {
     #workspace {
-        max-width: 60em;
+        max-width: 80em;
+        height: 83vh;
+    }
+    #canvas_container > canvas {
+        height: 70vh;
+    }
+    .tiny_icon {
+        width: 1em;
+        height: 1em;
     }
     #elements {
         flex-direction: column;
+        overflow-y: auto;
     }
     .element {
         margin-bottom: 0.5em;
@@ -114,6 +140,12 @@ button, input {
         grid-template-areas: 
         'image image image . .'
         'image image image . .';
+    }
+    .element.flex > .options {
+        display:flex;
+    }
+    .element.flex > .options > button {
+        flex-grow: 1;
     }
     .element.singular > .options {
         grid-template-areas: 'image';
@@ -137,7 +169,7 @@ button, input {
         'image image . . .'
         'image image . . .';
     }
-    .element_children {
+    .element_outline {
         border-left: 2px solid black;
         padding-left: 0.5em;
         margin-bottom: 0.5em;
@@ -148,11 +180,29 @@ button, input {
     }
 }
 @media (orientation:portrait) {
+    h1 {
+        margin-top: 0.5em;
+        margin-bottom: 0em;
+    }
     #workspace {
         flex-direction: column;
     }
+    #workspace > div {
+        margin: 0.5em;
+    }
+    #canvas_container > canvas {
+        height: 48vh;
+    }
+    .tiny_icon {
+        width: 2em;
+        height: 2em;
+    }
+    #elements {
+        overflow-x: auto;
+        height:24vh;
+    }
     .element {
-        margin-right: 0.5em;
+        margin-right: 0.25em;
         display:flex;
         flex-direction: column-reverse;
     }
@@ -161,6 +211,10 @@ button, input {
         grid-template-areas: 
         'image image'
         '. .';
+    }
+    .element.flex > .options {
+        display:flex;
+        flex-direction: column;
     }
     .element.singular > .options {
         grid-template-areas: 'image';
@@ -183,11 +237,13 @@ button, input {
         flex-grow: 1;
     }
     .element_children {
+        display:flex;
+    }
+    .element_outline {
         border-left: 2px solid black;
         border-bottom: 2px solid black;
-        padding-left: 1em;
-        padding-bottom: 1em;
+        padding-left: 0.5em;
+        padding-bottom: 0.5em;
         margin-right: 0.5em;
-        display:flex;
     }
 }

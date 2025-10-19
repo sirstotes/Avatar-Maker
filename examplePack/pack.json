@@ -1,0 +1,426 @@
+{
+    "name": "Example Pack",
+    "canvasWidth": 800,
+    "canvasHeight": 1000,
+    "root": {
+        "transform": {
+            "translation": {
+                "default": {"x": 400, "y": 475}
+            },
+            "rotation": {
+                "min":-90,
+                "max":90
+            }
+        },
+        "canAddChildren": true,
+        "children": [
+            {
+                "name": "Body",
+                "collapsible": true,
+                "children": [
+                    {
+                        "name": "hair",
+                        "thumbnail": "icons/hair.png",
+                        "hideable": true,
+                        "image": {
+                            "thumbnail": {"x":0, "y":20, "scale":2},
+                            "variants": [
+                                ["hair/1b.webp", "hair/1a.webp"],
+                                ["hair/2b.webp", "hair/2a.webp"],
+                                ["hair/3b.webp", "hair/3a.webp"],
+                                ["hair/4b.webp", "hair/4a.webp"],
+                                ["hair/5b.webp", "hair/5a.webp"],
+                                ["hair/6b.webp", "hair/6a.webp"],
+                                ["hair/7b.webp", "hair/7a.webp"],
+                                ["hair/8b.webp", "hair/8a.webp"],
+                                ["hair/9b.webp", "hair/9a.webp"],
+                                ["hair/10b.webp", "hair/10a.webp"]
+                            ]
+                        },
+                        "colors": true
+                    },
+                    {
+                        "name": "body",
+                        "thumbnail": "icons/abs.png",
+                        "image": {
+                            "thumbnail": {"x":0, "y":-35, "scale":2.5},
+                            "variants": [
+                                ["base_body.png", {"source":"underwear/bottom1.webp", "applyTint":false}, {"source":"underwear/top1.webp", "applyTint":false}],
+                                ["base_body.png", {"source":"underwear/bottom2.webp", "applyTint":false}, {"source":"underwear/top2.webp", "applyTint":false}],
+                                ["base_body.png", {"source":"underwear/bottom3.webp", "applyTint":false}, {"source":"underwear/top3.webp", "applyTint":false}],
+                                ["base_body.png", {"source":"underwear/bottom4.webp", "applyTint":false}, {"source":"underwear/top4.webp", "applyTint":false}],
+                                ["base_body.png", {"source":"underwear/bottom5.webp", "applyTint":false}, {"source":"underwear/top5.webp", "applyTint":false}]
+                            ]
+                        },
+                        "colors": {
+                            "default": "random",
+                            "palette": ["#fbeadf", "#e7bbaa", "#deaa8c", "#cc9475", "#a56b50", "#80513b", "#53301f", "rgb(68, 34, 19)"]
+                        }
+                    },
+                    {
+                        "name": "ears",
+                        "thumbnail": "icons/ear.png",
+                        "moveable": {
+                            "rotation": false,
+                            "scale": false
+                        },
+                        "transform": {
+                            "translation": {
+                                "min": {"x": 0, "y":-20},
+                                "max": {"x": 0, "y":20}
+                            }
+                        },
+                        "image": {
+                            "thumbnail": {"x":15, "y":30, "scale":9},
+                            "variants": [
+                                ["ears/1.png"],
+                                ["ears/2.png"],
+                                ["ears/3.png"],
+                                ["ears/4.png"],
+                                ["ears/5.png"],
+                                ["ears/6.png"],
+                                ["ears/7.png"],
+                                ["ears/8.png"]
+                            ]
+                        },
+                        "colors": {
+                            "copy": "body"
+                        }
+                    },
+                    {
+                        "name":"pupils",
+                        "thumbnail": "icons/eye.png",
+                        "collapsible": true,
+                        "collapsed": true,
+                        "moveable": {
+                            "rotation": false,
+                            "scale": false
+                        },
+                        "transform": {
+                            "translation": {
+                                "min": {"x": -10, "y":-20},
+                                "max": {"x": 10, "y":20}
+                            }
+                        },
+                        "image": {
+                            "thumbnail": {"x":0, "y":30, "scale":9},
+                            "variants": [
+                                [{"source":"base_white_eyes.png", "applyTint":false}, "pupils/1.png"],
+                                [{"source":"base_white_eyes.png", "applyTint":false}, "pupils/2.png"],
+                                [{"source":"base_white_eyes.png", "applyTint":false}, "pupils/3.png"],
+                                [{"source":"base_white_eyes.png", "applyTint":false}, "pupils/4.png"],
+                                [{"source":"base_white_eyes.png", "applyTint":false}, "pupils/5.png"]
+                            ]
+                        },
+                        "colors": {
+                            "default": "random",
+                            "palette": ["#a0c0c9", "#2fcdf3", "#61c058", "#b06d2b", "#593d20"]
+                        },
+                        "children": [
+                            {
+                                "name": "eyelids",
+                                "thumbnail": "icons/grace.png",
+                                "image": {
+                                    "thumbnail": {"x":0, "y":30, "scale":9},
+                                    "variants": [
+                                        ["eyes/1.png"],
+                                        ["eyes/2.png"],
+                                        ["eyes/3.png"]
+                                    ]
+                                },
+                                "colors": {
+                                    "default": {
+                                        "copy": "body"
+                                    },
+                                    "palette": ["#fbeadf", "#e7bbaa", "#deaa8c", "#cc9475", "#a56b50", "#80513b", "#53301f", "rgb(68, 34, 19)"]
+                                }
+                            },
+                            {
+                                "name": "eyelashes",
+                                "hideable": true,
+                                "thumbnail": "icons/eyelash.png",
+                                "image": {
+                                    "thumbnail": {"x":0, "y":30, "scale":9},
+                                    "variants": [
+                                        ["eyelashes/1.png"],
+                                        ["eyelashes/2.png"],
+                                        ["eyelashes/3.png"],
+                                        ["eyelashes/4.png"],
+                                        ["eyelashes/5.png"],
+                                        ["eyelashes/6.png"],
+                                        ["eyelashes/7.png"]
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "nose",
+                        "thumbnail": "icons/nose.png",
+                        "moveable": {
+                            "rotation": false,
+                            "scale": false
+                        },
+                        "transform": {
+                            "translation": {
+                                "min": {"x": -5, "y":-20},
+                                "max": {"x": 5, "y":20}
+                            }
+                        },
+                        "image": {
+                            "thumbnail": {"x":0, "y":30, "scale":9},
+                            "variants": [
+                                ["nose/1.png"],
+                                ["nose/2.png"],
+                                ["nose/3.png"],
+                                ["nose/4.png"],
+                                ["nose/5.png"],
+                                ["nose/6.png"]
+                            ]
+                        }
+                    },
+                    {
+                        "name": "mouth",
+                        "thumbnail": "icons/lips.png",
+                        "moveable": {
+                            "rotation": false,
+                            "scale": false
+                        },
+                        "transform": {
+                            "translation": {
+                                "min": {"x": -5, "y":-20},
+                                "max": {"x": 5, "y":20}
+                            }
+                        },
+                        "image": {
+                            "thumbnail": {"x":0, "y":20, "scale":9},
+                            "variants": [
+                                ["mouth/1.png"],
+                                ["mouth/2.png"],
+                                ["mouth/3.png"],
+                                ["mouth/4.png"],
+                                ["mouth/5.png"],
+                                ["mouth/6.png"],
+                                ["mouth/7.png"],
+                                ["mouth/8.png"],
+                                ["mouth/9.png"],
+                                ["mouth/10.png"],
+                                ["mouth/11.png"],
+                                ["mouth/12.png"],
+                                ["mouth/13.png"],
+                                ["mouth/14.png"]
+                            ]
+                        }
+                    },
+                    {
+                        "name": "hair_front",
+                        "thumbnail": "icons/hair.png",
+                        "hideable": true,
+                        "selectedImage": {"copy":"hair"},
+                        "image": {
+                            "thumbnail": {"x":0, "y":35, "scale":5},
+                            "variants": [
+                                ["hair/1a.webp"],
+                                ["hair/2a.webp"],
+                                ["hair/3a.webp"],
+                                ["hair/4a.webp"],
+                                ["hair/5a.webp"],
+                                ["hair/6a.webp"],
+                                ["hair/7a.webp"],
+                                ["hair/8a.webp"],
+                                ["hair/9a.webp"],
+                                ["hair/10a.webp"]
+                            ]
+                        },
+                        "colors": {
+                            "palette": {"copy":"hair"}
+                        }
+                    },
+                    {
+                        "name": "bangs",
+                        "thumbnail": "icons/bangs.png",
+                        "hideable": true,
+                        "image": {
+                            "thumbnail": {"x":0, "y":35, "scale":5},
+                            "variants": [
+                                ["bangs/1.webp"],
+                                ["bangs/2.webp"],
+                                ["bangs/3.webp"],
+                                ["bangs/4.webp"],
+                                ["bangs/5.webp"],
+                                ["bangs/6.webp"],
+                                ["bangs/7.webp"],
+                                ["bangs/8.webp"],
+                                ["bangs/9.webp"],
+                                ["bangs/10.webp"]
+                            ]
+                        },
+                        "colors": {
+                            "palette": {"copy":"hair"}
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Clothing",
+                "hideable": true,
+                "collapsible": true,
+                "reorderable": true,
+                "children": [
+                ],
+                "addableChildren": [
+                    {
+                        "name": "pants",
+                        "thumbnail": "icons/pants.png",
+                        "hideable": true,
+                        "cloneable": true,
+                        "selectedImage": 4,
+                        "image": {
+                            "thumbnail": {"x":0, "y":-75, "scale":2},
+                            "variants": [
+                                ["bottom/1.webp"],
+                                ["bottom/2.webp"],
+                                ["bottom/3.webp"],
+                                ["bottom/4.webp"],
+                                ["bottom/5.webp"],
+                                ["bottom/6.webp"],
+                                ["bottom/7.webp"]
+                            ]
+                        },
+                        "colors": true
+                    },
+                    {
+                        "name": "shirt",
+                        "thumbnail": "icons/shirt.png",
+                        "hideable": true,
+                        "cloneable": true,
+                        "selectedImage": 7,
+                        "image": {
+                            "thumbnail": {"x":0, "y":-20, "scale":2},
+                            "variants": [
+                                ["top/1.webp"],
+                                ["top/2.webp"],
+                                ["top/3.webp"],
+                                ["top/4.webp"],
+                                ["top/5.webp"],
+                                ["top/6.webp"],
+                                ["top/7.webp"],
+                                ["top/8.webp"],
+                                ["top/9.webp"],
+                                ["top/10.webp"],
+                                ["top/11.webp"],
+                                ["top/12.webp"],
+                                ["top/13.webp"]
+                            ]
+                        },
+                        "colors": true
+                    },
+                    {
+                        "name": "shoes",
+                        "thumbnail": "icons/shoes.png",
+                        "hideable": true,
+                        "cloneable": true,
+                        "selectedImage": 6,
+                        "image": {
+                            "thumbnail": {"x":0, "y":-150, "scale":2.5},
+                            "variants": [
+                                ["shoes/1.webp"],
+                                ["shoes/2.webp"],
+                                ["shoes/3.webp"],
+                                ["shoes/4.webp"],
+                                ["shoes/5.webp"],
+                                ["shoes/6.webp"],
+                                ["shoes/7.webp"],
+                                ["shoes/8.webp"],
+                                ["shoes/9.webp"],
+                                ["shoes/10.webp"]
+                            ]
+                        },
+                        "colors": true
+                    },
+                    {
+                        "name":"jacket",
+                        "thumbnail": "icons/jacket.png",
+                        "hideable": true,
+                        "cloneable": true,
+                        "image": {
+                            "thumbnail": {"x":0, "y":-20, "scale":2},
+                            "variants": [
+                                ["jacket/1.webp"],
+                                ["jacket/2.webp"],
+                                ["jacket/3.webp"],
+                                ["jacket/4.webp"],
+                                ["jacket/5.webp"],
+                                ["jacket/6.webp"],
+                                ["jacket/7.webp"],
+                                ["jacket/8.webp"],
+                                ["jacket/9.webp"],
+                                ["jacket/10.webp"]
+                            ]
+                        },
+                        "colors": true
+                    },
+                    {
+                        "name": "dress",
+                        "thumbnail": "icons/dress.png",
+                        "hideable": true,
+                        "cloneable": true,
+                        "selectedImage": 7,
+                        "image": {
+                            "thumbnail": {"x":0, "y":-50, "scale":1.5},
+                            "variants": [
+                                ["dress/1.webp"],
+                                ["dress/2.webp"],
+                                ["dress/3.webp"],
+                                ["dress/4.webp"],
+                                ["dress/5.webp"],
+                                ["dress/6.webp"],
+                                ["dress/7.webp"],
+                                ["dress/8.webp"],
+                                ["dress/9.webp"],
+                                ["dress/10.webp"]
+                            ]
+                        },
+                        "colors": true
+                    },
+                    {
+                        "name": "earring",
+                        "thumbnail": "icons/earrings.png",
+                        "hideable": true,
+                        "cloneable": true,
+                        "selectedImage": 1,
+                        "image": {
+                            "thumbnail": {"x":0, "y":16, "scale":4},
+                            "variants": [
+                                ["jewelry/earrings.webp"],
+                                ["jewelry/long_necklace.webp"],
+                                ["jewelry/pearls_ears.webp"],
+                                ["jewelry/pearls_necklace.webp"],
+                                ["jewelry/small_necklace.webp"]
+                            ]
+                        },
+                        "colors": true
+                    },
+                    {
+                        "name": "bracelet",
+                        "thumbnail": "icons/bracelet.png",
+                        "hideable": true,
+                        "cloneable": true,
+                        "horizontalFlip": true,
+                        "selectedImage": 2,
+                        "image": {
+                            "thumbnail": {"x":35, "y":-52, "scale":9},
+                            "variants": [
+                                ["jewelry/bracelet.png"],
+                                ["jewelry/ring.png"],
+                                ["jewelry/watch.png"],
+                                ["jewelry/ankle_bracelet.png"]
+                            ]
+                        },
+                        "colors": true
+                    }
+                ]
+            }
+        ]
+    }
+}

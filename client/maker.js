@@ -1,15 +1,21 @@
 let selectedElement = undefined;
 let toggledButton = undefined;
 let trashedButton = undefined;
+let selectingSketches = [];
 function cancelButton(button) {
     toggledButton = button;
     toggledButton.style = "background-color:red;";
     toggledButton.innerHTML = "<img class='icon' src='assets/cancel.png' style='filter:invert(1);'>";
     toggledButton.onclick = function() {
         hideControls();
-        selectedElement = undefined;
     }
     selectedElement.refreshDisplay();
+}
+function clearExtraCanvases() {
+    selectingSketches.forEach(sketch => {
+        sketch.remove();
+    });
+    document.getElementById("selectable_elements").innerHTML = "";
 }
 function refreshTrashedButton() {
     trashedButton.hidden = false;
@@ -39,13 +45,15 @@ function showColorPalette() {
             picker.getElementsByTagName("div")[0].appendChild(button);
         });
         picker.getElementsByClassName("custom").forEach(node => {
-            node.hidden = !selectedElement.options.color.customColorsAllowed;
+            node.hidden = !selectedElement.controls.colors.customColorsAllowed;
         });
     }
 }
 function showColorPicker() {
+    if (selectedElement != undefined) {
+        document.getElementById("color_picker_input").value = selectedElement.getDisplayColor();
+    }
     hideControls(false);
-    document.getElementById("color_picker_input").value = selectedElement.getDisplayColor();
     document.getElementById("color_picker").hidden = false;
 }
 function refreshColorPalette() {
@@ -61,51 +69,94 @@ function refreshColorPalette() {
 function showMovementControls() {
     const controls = document.getElementById("movement_controls");
     controls.hidden = false;
+    document.getElementsByClassName("translation").forEach(button => {
+        button.hidden = !selectedElement.controls.moveable.translation;
+    });
+    document.getElementsByClassName("rotation").forEach(button => {
+        button.hidden = !selectedElement.controls.moveable.rotation;
+    });
+    document.getElementsByClassName("scale").forEach(button => {
+        button.hidden = !selectedElement.controls.moveable.scale;
+    });
 }
 function moveElement(x, y) {
     if(selectedElement != undefined) {
-        selectedElement.getDisplayTransform().translate(x, y);
+        selectedElement.displayTransform.translate(x * selectedElement.incrementTransform.translation.x, y * selectedElement.incrementTransform.translation.y);
+    }
+}
+function saveCanvas() {
+    if(p != undefined && pack != undefined) {
+        p.saveCanvas(pack.name, "png");
     }
 }
 function scaleElement(x, y) {
     if(selectedElement != undefined) {
-        selectedElement.getDisplayTransform().scale(x, y);
+        selectedElement.displayTransform.addScale(x * selectedElement.incrementTransform.scale.x, y * selectedElement.incrementTransform.scale.x);
     }
 }
 function rotateElement(r) {
     if(selectedElement != undefined) {
-        selectedElement.getDisplayTransform().rotate(r);
+        selectedElement.displayTransform.rotate(r * selectedElement.incrementTransform.rotation);
     }
 }
-function refreshElementSelect() {
+// function refreshElementSelect() {
+//     const container = document.getElementById("selectable_elements");
+//     container.childNodes.forEach(node => {
+//         if(node.imageSrc == container.selectedImage) {
+//             node.classList.add("selected");
+//         } else {
+//             node.classList.remove("selected");
+//         }
+//     });
+// }
+function showImageSelectPopup(element) {
     const container = document.getElementById("selectable_elements");
-    container.childNodes.forEach(node => {
-        if(node.imageSrc == container.selectedImage) {
-            node.classList.add("selected");
-        } else {
-            node.classList.remove("selected");
-        }
+    container.innerHTML = "";
+    //container.selectedImage = element.getCurrentImage();
+    element.images.forEach(image => {
+        selectingSketches.push(new p5(image.getSketch(image == element.getCurrentImage(), element.getDisplayColor(), p => function() {
+            if(p.mouseX > 0 && p.mouseX < p.canvasSize && p.mouseY > 0 && p.mouseY < p.canvasSize) {
+                element.selectImage(image);
+                clearExtraCanvases();
+                hidePopups();
+            }
+        })));
     });
+    //refreshElementSelect();
+
+    document.getElementById("popup").style = "";
+    document.getElementById("element_select").hidden = false;
 }
 function showElementSelectPopup(element) {
     const container = document.getElementById("selectable_elements");
     container.innerHTML = "";
-    container.selectedImage = element.getCurrentImage();
-    element.images.forEach(image => {
-        const button = document.createElement("button");
-        button.classList.add("image");
-        button.imageSrc = image;
-        button.innerHTML = "<img src="+image+">";
-        button.onclick = function() {
-            container.selectedImage = image;
-            refreshElementSelect();
-        }
-        container.appendChild(button);
+    selectedElement = element;
+    element.addableChildren.forEach(child => {
+        selectingSketches.push(new p5(child.getCurrentImage().getSketch(false, child.getDisplayColor(), p => function() {
+            if(p.mouseX > 0 && p.mouseX < p.canvasSize && p.mouseY > 0 && p.mouseY < p.canvasSize) {//onclick
+                child.cloneTo(element);
+                clearExtraCanvases();
+                hidePopups();
+            }
+        })));
     });
-    refreshElementSelect();
 
     document.getElementById("popup").style = "";
     document.getElementById("element_select").hidden = false;
+}
+function showMakerSelectPopup(element) {
+    document.getElementById("popup").style = "";
+    document.getElementById("maker_select").hidden = false;
+}
+function showElementLoadPopup() {
+    document.getElementById("popup").style = "";
+    document.getElementById("element_load").hidden = false;
+}
+let packURL = "example/";
+function changeMaker() {
+    let value = document.getElementById("maker_url").value;
+    fetch(value+"pack.json").then(result => loadPack(value).then(elements => onLoad(elements)))
+    .catch(error => console.error(error));
 }
 function tryReset(button) {
     button.style = "background-color:red;";
@@ -113,7 +164,9 @@ function tryReset(button) {
     button.defaultOnclick = button.onclick;
     button.innerHTML = "<img class='icon' src='assets/check.png' style='filter:invert(1);'>";
     button.onclick = function() {
-        //RESET
+        localStorage.setItem("changes", undefined);
+        loadPack(packURL).then(elements => onLoad(elements));
+        refreshTrashedButton();
     }
     if(trashedButton != undefined) {
         refreshTrashedButton();
@@ -130,34 +183,49 @@ function updateSelectedColor(color) {
 function hidePopups() {
     document.getElementById("popup").style = "display:none;";
     document.getElementById("element_select").hidden = true;
+    document.getElementById("element_load").hidden = true;
+    document.getElementById("element_export").hidden = true;
+    document.getElementById("maker_select").hidden = true;
 }
-function hideControls(untoggle = true) {
+function hideControls(clear = true) {
     document.getElementById("color_controls").hidden = true;
     document.getElementById("color_picker").hidden = true;
     document.getElementById("movement_controls").hidden = true;
 
-    if(toggledButton != undefined && untoggle) {
-        toggledButton.style = "";
-        toggledButton.innerHTML = toggledButton.defaultInnerHTML;
-        toggledButton.onclick = toggledButton.defaultOnclick;
-        toggledButton = undefined;
+    if(clear) {
+        if(toggledButton != undefined) {
+            toggledButton.style = "";
+            toggledButton.innerHTML = toggledButton.defaultInnerHTML;
+            toggledButton.onclick = toggledButton.defaultOnclick;
+            toggledButton = undefined;
+        }
+
+        if(selectedElement != undefined) {
+            selectedElement.refreshDisplay();
+        }
+        selectedElement = undefined;
     }
 }
 function hideColorControls(save) {
-    hideControls();
     if(save) {
         selectedElement.saveDisplayColor();
     }
-    selectedElement = undefined;
+    hideControls();
 }
 function hideColorPicker(save) {
-    hideControls(false);
     if(save) {
         const color = document.getElementById("color_picker_input").value;
         selectedElement.addColorOption(color);
         selectedElement.setDisplayColor(color);
     }
+    hideControls(false);
     showColorPalette();
+}
+function hideMovementControls(save) {
+    if(save) {
+        selectedElement.saveDisplayTransform();
+    }
+    hideControls();
 }
 function removeSelectedColor() {
     selectedElement.removeColorOption(selectedElement.getDisplayColor());
@@ -169,456 +237,71 @@ function removeSelectedColor() {
         }
     });
 }
-function vec(x, y) {
-    return {x:x, y:y};
+function loadPack(url) {
+    if(p != undefined) {
+        p.remove();
+    }
+    elementLookupTable = {};
+    addedElements = [];
+    document.getElementById("canvas_container").innerHTML = "";
+    document.getElementById("elements").innerHTML = "";
+    return fetch(url+"pack.json")
+        .then((response) => response.json())
+        .then((json) => {
+            pack = {
+                name: json.name,
+                canvasWidth: json.canvasWidth,
+                canvasHeight: json.canvasHeight
+            };
+            root = new ElementContainer(json.root, true, true);
+        });
 }
-class ConstrainedTransformer {
-    constructor(translation, scale, rotation) {
-        this.translation = translation;
-        this.scale = scale;
-        this.rotation = rotation;
-    }
-    apply() {
-        translate(this.translation.x, this.translation.y);
-        rotate(this.rotation);
-        scale(this.scale.x, this.scale.y);
-    }
-    translate(x, y) {
-        this.translation.x += x;
-        this.translation.y += y;
-    }
-    scale(x, y) {
-        this.scale.x += x;
-        this.scale.y += y;
-    }
-    rotate(r) {
-        this.rotation += r;
-    }
-}
-class LayeredImage {
-    constructor(layers, layerOptions = undefined, thumbnailLayer = 0) {
-        this.layers = layers;
-        if(layerOptions instanceof Array) {
-            this.layerOptions = layerOptions;
-        } else {
-            this.layerOptions = [];
-            for(let i = 0; i < this.layers.length; i ++) {
-                this.layerOptions.push({
-                    tint:true
-                });
+function loadChanges(changes) {
+    try {
+        let parsed = JSON.parse(changes);
+        parsed.editedElements.forEach(element => {
+            if(elementLookupTable.hasOwnProperty(element.name)) {
+                elementLookupTable[element.name].processJSON(element, true);
             }
-        }
-        this.thumbnailLayer = thumbnailLayer;
-        preload();
-    }
-    preload() {
-        this.imgs = [];
-        for(let i = 0; i < this.layers.length; i ++) {
-            this.imgs.push(loadImage(this.layers[i]));
-        }
-    }
-    draw(transformer, tintColor) {
-        transformer.apply();
-        for(let i = 0; i < this.imgs.length; i ++) {
-            if(this.layerOptions[i].tint) {
-                tint(tintColor);
+        });
+        parsed.addedElements.forEach(element => {
+            if(elementLookupTable.hasOwnProperty(element.name) && elementLookupTable.hasOwnProperty(element.parentName)) {
+                let newElement = elementLookupTable[element.name].getClone(elementLookupTable[element.name].exportOptions());
+                newElement.processJSON(element, false);
+                elementLookupTable[element.parentName].addChild(newElement);
             }
-            image(this.imgs[i], 0, 0);
-        }
-        resetMatrix();
-    }
-    getWidth() {
-        if(this.imgs[this.imgs.length-1] != undefined) {
-            return this.imgs[this.imgs.length-1].width;
-        }
-        return 100;
-    }
-    getHeight() {
-        if(this.imgs[this.imgs.length-1] != undefined) {
-            return this.imgs[this.imgs.length-1].height;
-        }
-        return 100;
+        });
+    } catch(error) {
+        console.error(error);
     }
 }
-class ElementContainer {
-    constructor(canAddChildren = true, node = undefined) {
-        this.name = "Container";
-        this.children = [];
-        if(node != undefined) {
-            this.childrenNode = node;
-        } else {
-            this.childrenNode = document.getElementById("elements");
+function getJSON() {
+    let json = {
+        editedElements: [],
+        addedElements: []
+    };
+    Object.keys(elementLookupTable).forEach(key => {
+        if(elementLookupTable[key].base) {
+            json.editedElements.push(elementLookupTable[key].exportJSON());
         }
-        this.canAddChildren = canAddChildren;
-        if(this.canAddChildren) {
-            this.button = document.createElement("button");
-            this.button.classList.add("add_element", "extrude");
-            this.button.innerHTML = '<img class="icon" src="assets/plus.png">';
-            this.childrenNode.appendChild(this.button);
-        }
-    }
-    canHaveChildren() {
-        return true;
-    }
-    addChild(element) {
-        this.children.push(element);
-        element.parent = this;
-        if(this.canAddChildren) {
-            this.childrenNode.insertBefore(element.node, this.button);
-        } else {
-            this.childrenNode.appendChild(element.node);
-        }
-    }
-    preload() {
-        this.children.forEach(child => {
-            child.preload();
-        });
-    }
-    removeChild(element) {
-        if(this.children.includes(element)) {
-            this.children.splice(this.children.indexOf(element), 1);
-            if(element.node != undefined) {
-                this.childrenNode.removeChild(element.node);
-            }
-            if(element.childrenNode != undefined) {
-                this.childrenNode.removeChild(element.childrenNode);
-            }
-        } else {
-            console.error("Tried to remove a child ("+element.name+") that does not belong to this element ("+this.name+")");
-        }
-    }
-    draw() {
-        for(let i = 0; i < this.children.length; i ++) {
-            this.children[i].draw();
-        }
-    }
+    });
+    addedElements.forEach(element => {
+        json.addedElements.push(element.exportJSON());
+    });
+    return json;
 }
-class Element extends ElementContainer {
-    constructor(options = {}) {
-        super(false);
-        this.name = "";
-        this.thumbnail = "assets/category.png";
-        this.images = [new LayeredImage(["assets/circle.png"]), new LayeredImage(["assets/square.png"])];
-        this.currentImage = 0;
-        this.canAddChildren = false;
-        this.reorderable = false;
-        this.options = {
-            color: {
-                enabled: false,
-                displayTint: "white",
-                savedTint: "white",
-                customColorsAllowed: true,
-                palette: [],
-                exportOptions: ["displayTint", "savedTint", "customColorsAllowed", "palette"],
-                defaultKeys: ["displayTint", "savedTint"],
-                name: "Recolor",
-                icon: "<img class='icon' src='assets/color-picker.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        selectedElement = element;
-                        hideControls();
-                        cancelButton(this);
-                        showColorPalette();
-                    };
-                }
-            },
-            transform: {
-                enabled: false,
-                displayTransform: new ConstrainedTransformer(vec(0, 0), vec(1, 1), 0),
-                savedTransform: new ConstrainedTransformer(vec(0, 0), vec(1, 1), 0),
-                exportOptions: ["displayTransform", "savedTransform"],
-                defaultKeys: ["displayTransform", "savedTransform"],
-                name: "Move",
-                icon: "<img class='icon' src='assets/move.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        selectedElement = element;
-                        hideControls();
-                        cancelButton(this);
-                        showMovementControls();
-                    }
-                }
-            },
-            display: {
-                enabled: false,
-                hidden: false,
-                exportOptions: ["hidden"],
-                name: "Hide",
-                icon: "<img class='icon' src='assets/shown.png'>",
-                icon2: "<img class='icon' src='assets/hidden.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        element.toggleHidden();
-                        this.innerHTML = element.getIconForOption("display");
-                    }
-                }
-            },
-            clone: {
-                enabled: false,
-                name: "Clone",
-                icon: "<img class='icon' src='assets/clone.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        element.clone();
-                    }
-                }
-            },
-            remove: {
-                enabled: false,
-                name: "Remove",
-                icon: "<img class='icon' src='assets/delete.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        this.style = "background-color:red;";
-                        this.innerHTML = "<img class='icon' src='assets/check.png' style='filter:invert(1);'>";
-                        this.onclick = function() {
-                            element.parent.removeChild(element);
-                        }
-                        if(trashedButton != undefined) {
-                            refreshTrashedButton();
-                        }
-                        trashedButton = this;
-                    }
-                }
-            }
-        };
-        this.parent = undefined;
-        this.setOptions(options, false);
-        this.node = this.createNode();
-        this.childrenNode = undefined;
-    }
-    canHaveChildren() {
-        return this.children.length > 0 || this.canAddChildren;
-    }
-    getDisplayColor() {
-        return this.options.color.displayTint;
-    }
-    getDisplayTransform() {
-        return this.options.transform.displayTransform;
-    }
-    getColorOptions() {
-        return this.options.color.palette;
-    }
-    getDisplayPosition() {
-        return {
-            x: this.getDisplayTransform().translation.x,
-            w: this.getCurrentImage().getWidth() * this.getDisplayTransform().scale.x,
-            y: this.getDisplayTransform().translation.y,
-            h: this.getCurrentImage().getHeight() * this.getDisplayTransform().scale.y
-        }; 
-    }
-    getCurrentImage() {
-        return this.images[this.currentImage];
-    }
-    getIconForOption(option) {
-        if(option == "display" && this.isHidden()) {
-            return this.options[option].icon2;
-        }
-        return this.options[option].icon;
-    }
-    getOptionAmount() {
-        let num = 1;
-        Object.keys(this.options).forEach(key => {
-            if(this.options[key].enabled) {
-                num ++;
-            }
-        });
-        return num;
-    }
-    isHidden() {
-        return this.options.display.hidden;
-    }
-    addChild(element) {
-        if(this.childrenNode != undefined) {
-            super.addChild(element);
-        } else {
-            this.children.push(element);
-            element.parent = this;
-            this.childrenNode = this.createChildrenNode();
-            this.node.parentNode.insertBefore(this.childrenNode, this.node.nextSibling);
-        }
-    }
-    addColorOption(color) {
-        this.options.color.palette.push(color);
-    }
-    clone() {
-        this.cloneTo(this.parent);
-    }
-    cloneTo(parentElementContainer) {
-        const options = this.exportOptions();
-        options.remove = true;
-        if(this.name != "") {
-            options.name = this.name + "(Clone)";
-        }
-        parentElementContainer.addChild(new Element(options));
-    }
-    createChildrenNode() {
-        const div = document.createElement("div");
-        div.classList.add("element_children");
-        this.children.forEach(child => {
-            div.appendChild(child.node);
-        });
-        if(this.canAddChildren) {
-            const button = document.createElement("button");
-            button.classList.add("add_element", "extrude");
-            button.innerHTML = '<img class="icon" src="assets/plus.png">';
-            div.appendChild(button);
-        }
-        return div;
-    }
-    createNode() {
-        const element = document.createElement("div");
-        element.classList.add("element");
-        switch(this.getOptionAmount()) {
-            case 1: element.classList.add("singular"); break;
-            case 2: element.classList.add("dual"); break;
-            case 3: element.classList.add("tri"); break;
-            case 4: case 5: break;
-            case 6: case 7: element.classList.add("sept"); break;
-            default: element.classList.add("multi"); break;
-        }
-        if(this.name != "") {
-            const span = document.createElement("span");
-            span.innerText = this.name;
-            element.appendChild(span);
-        }
-        const mainDiv = document.createElement("div");
-        mainDiv.classList.add("options");
-        const mainButton = document.createElement("button");
-        mainButton.classList.add("image");
-        mainButton.innerHTML = "<img src='"+this.thumbnail+"'>";
-        const emnt = this;
-        if(this.images.length > 1) {
-            mainButton.classList.add("extrude");
-            mainButton.onclick = function() {
-                showElementSelectPopup(emnt);
-            }
-        }
-        mainDiv.appendChild(mainButton);
-        Object.keys(this.options).forEach(key => {
-            const option = this.options[key];
-            if(option.enabled) {
-                const button = document.createElement("button");
-                button.classList.add("extrude");
-                button.innerHTML = this.getIconForOption(key);
-                button.defaultInnerHTML = option.icon;
-                if(option.getOnclick != undefined) {
-                    button.onclick = option.getOnclick(emnt);
-                    button.defaultOnclick = option.getOnclick(emnt);
-                }
-                mainDiv.appendChild(button);
-            }
-        });
-        element.appendChild(mainDiv);
-        if(this.reorderable) {
-            const sideDiv = document.createElement("div");
-            sideDiv.classList.add("side");
-            const button1 = document.createElement("button");
-            button1.classList.add("extrude");
-            button1.innerHTML = "<img class='icon' src='assets/up.png'>";
-            sideDiv.appendChild(button1);
-            const button2 = document.createElement("button");
-            button2.classList.add("extrude");
-            button2.innerHTML = "<img class='icon' src='assets/down.png'>";
-            sideDiv.appendChild(button2);
-            element.appendChild(sideDiv);
-        }
-        return element;
-    }
-    draw() {
-        if(!this.isHidden()) {
-            this.getCurrentImage().draw(this.getDisplayTransform(), this.getDisplayColor());
-            if(selectedElement == this) {
-                noFill();
-                drawingContext.setLineDash([5 + sin(frameCount/10)*2, 10 - sin(frameCount/10)*2])
-                strokeWeight(3);
-                stroke(255);
-                rect(this.getDisplayTransform().translation.x, 
-                this.getDisplayTransform().translation.y, 
-                this.getCurrentImage().getWidth() * this.getDisplayTransform().scale.x, 
-                this.getCurrentImage().getHeight() * this.getDisplayTransform().scale.y);
-            }
-            super.draw();
-        }
-    }
-    exportOptions() {
-        const options = {
-            name: this.name,
-            thumbnail: this.thumbnail,
-            images: this.images,
-            currentImage: this.currentImage
-        };
-        Object.keys(this.options).forEach(key => {
-            const option = this.options[key];
-
-            options[key] = {enabled:option.enabled};
-            if(option.hasOwnProperty("exportOptions")) {
-                for(let i = 0; i < option.exportOptions.length; i ++) {
-                    options[key][option.exportOptions[i]] = option[option.exportOptions[i]];
-                }
-            }
-        });
-        return options;
-    }
-    preload() {
-        this.images.forEach(image => {
-            image.preload();
-        });
-        super.preload();
-    }
-    refreshDisplay() {
-        this.resetDisplayColor();
-    }
-    refreshNode() {
-        const node = this.createNode();
-        this.node.replaceWith(node);
-        this.node = node;
-    }
-    removeColorOption(color) {
-        if(this.getColorOptions().includes(color)) {
-            this.getColorOptions().splice(this.getColorOptions().indexOf(color), 1);
-        }
-    }
-    resetDisplayColor() {
-        this.options.color.displayTint = this.options.color.savedTint;
-    }
-    saveDisplayColor() {
-        this.options.color.savedTint = this.options.color.displayTint;
-    }
-    setDisplayColor(color) {
-        this.options.color.displayTint = color;
-    }
-    setOptions(options, refreshNode = true) {
-        Object.keys(options).forEach(key => {
-            const option = options[key];
-            if(this.options.hasOwnProperty(key)) {
-                if(typeof option === "boolean") {
-                    this.options[key].enabled = option;
-                } else if(option instanceof Object) {
-                    if(!option.hasOwnProperty("enabled")) {
-                        this.options[key].enabled = true;
-                    }
-                    Object.keys(option).forEach(key2 => {
-                        if(key2 == "default" && this.options[key].hasOwnProperty("defaultKeys")) {
-                            this.options[key].defaultKeys.forEach(defaultKey => {
-                                this.options[key][defaultKey] = option[key2];
-                            });
-                        } else {
-                            this.options[key][key2] = option[key2];
-                        }
-                    });
-                }
-            } else if (this.hasOwnProperty(key)) {
-                this[key] = option;
-            }
-        });
-        if(refreshNode) {
-            this.refreshNode();
-        }
-    }
-    toggleHidden() {
-        this.options.display.hidden = !this.options.display.hidden;
-    }
+function showElementExportPopup() {
+    console.log(JSON.stringify(getJSON()));
+    document.getElementById("popup").style = "";
+    document.getElementById("element_export").hidden = false;
+    document.getElementById("export_json").innerHTML = JSON.stringify(getJSON());
+}
+function downloadChanges() {
+    p.save(getJSON(), "exported.json");
+}
+function saveChangesToLocalStorage() {
+    localStorage.setItem("packURL", packURL);
+    localStorage.setItem("changes", JSON.stringify(getJSON()));
 }
 
 document.addEventListener("click", function(event) {
@@ -627,38 +310,54 @@ document.addEventListener("click", function(event) {
     }
 });
 
-let elements;
 document.addEventListener("DOMContentLoaded", function(event) {
-    elements = new ElementContainer(false);
-    elements.addChild(new Element({
-        color: {
-            default: "red",
-            palette: ["red", "orange", "yellow", "green", "blue", "purple", "white"]
-        },
-        transform: {
-            default: new ConstrainedTransformer(vec(50, 50), vec(0.5, 0.5), 0)
-        },
-        display: true,
-        clone: true
-    }));
+    if(localStorage.getItem("packURL") != undefined) {
+        packURL = localStorage.getItem("packURL");
+    } else {
+        packURL = document.getElementById("maker_url").value;
+    }
+    loadPack("example/").then(elements => onLoad(elements));
 });
 
-function preload() {
-    elements.preload();
-}
+window.addEventListener("beforeunload", function(e){
+    saveChangesToLocalStorage();
+});
 
-function setup() {
-    let canvas = createCanvas(512, 512);
-    canvas.parent('canvas_container');
-}
-function draw() {
-    background(155);
-    elements.draw();
-    if(selectedElement != undefined) {
-        let pos = selectedElement.getDisplayPosition();
-        document.getElementById("controls_position").style = `left: ${pos.x}px; top:${pos.y+pos.h}px;`;
-        document.getElementById("movement_controls").style = `width: ${pos.w}px;`;
-        document.getElementById("color_controls").style = `width: ${pos.w}px;`;
-        document.getElementById("color_picker").style = `width: ${pos.w}px;`;
+let p;
+let pack;
+let root;
+let elementLookupTable = {};
+let addedElements = [];
+
+function onLoad() {
+    if(localStorage.getItem("changes") != undefined) {
+        loadChanges(localStorage.getItem("changes"));
     }
+    root.addNodesTo(document.getElementById("elements"));
+    p = new p5(p => {
+        p.preload = function() {
+            root.preload(p);
+        }
+        p.setup = function() {
+            let canvas = p.createCanvas(pack.canvasWidth, pack.canvasHeight);
+            canvas.parent('canvas_container');
+            p.angleMode(p.DEGREES);
+            p.imageMode(p.CENTER);
+            p.rectMode(p.CENTER);
+            root.setup(p);
+            document.getElementById("canvas_container").childNodes[0].style = "";
+        }
+        p.draw = function() {
+            p.clear();
+            root.draw(p);
+            if(selectedElement != undefined) {
+                let top = selectedElement.getGlobalTranslation().y > pack.canvasHeight*0.75;
+                document.getElementById("controls_position").style = `left: 0vh; top:${top ? 0 : 70}vh; transform:translate(0, ${top ? 0 : -3}em);`;
+                document.getElementById("movement_controls").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
+                document.getElementById("color_controls").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
+                document.getElementById("color_picker").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
+                selectedElement.drawBoundingBox(p);
+            }
+        }
+    });
 }
