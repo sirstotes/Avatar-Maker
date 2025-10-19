@@ -329,6 +329,7 @@ class ElementContainer {
             button1.innerHTML = `<img class='tiny_icon' src='${getPrevIcon()}'>`;
             button1.onclick = function() {
                 thisInstance.moveUp();
+                updateDraw = true;
             }
             button1.disabled = !thisInstance.canMoveUp();
             sideDiv.appendChild(button1);
@@ -337,6 +338,7 @@ class ElementContainer {
             button2.innerHTML = `<img class='tiny_icon' src='${getNextIcon()}'>`;
             button2.onclick = function() {
                 thisInstance.moveDown();
+                updateDraw = true;
             }
             button2.disabled = !thisInstance.canMoveDown();
             sideDiv.appendChild(button2);
