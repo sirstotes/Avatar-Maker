@@ -30,7 +30,7 @@ function showColorPalette() {
         const picker = document.getElementById("color_controls");
         picker.hidden = false;
         document.getElementById("palette_container").innerHTML = "";
-        selectedElement.getColorOptions().forEach(color => {
+        selectedElement.getColorPalette().forEach(color => {
             const button = document.createElement("button");
             button.classList.add("color", "extrude");
             if(color == selectedElement.getDisplayColor()) {
@@ -146,15 +146,21 @@ function showElementSelectPopup(element) {
     const container = document.getElementById("selectable_elements");
     container.innerHTML = "";
     selectedElement = element;
-    element.addableChildren.forEach(child => {
-        selectingSketches.push(new p5(child.getCurrentImage().getSketch(false, child.getDisplayColor(), p => function() {
-            if(p.mouseX > 0 && p.mouseX < p.canvasSize && p.mouseY > 0 && p.mouseY < p.canvasSize) {//onclick
-                child.cloneTo(element);
-                clearExtraCanvases();
-                hidePopups();
-            }
-        })));
-    });
+    if(element.addableChildren.length > 1) {
+        element.addableChildren.forEach(child => {
+            selectingSketches.push(new p5(child.getCurrentImage().getSketch(false, child.getDisplayColor(), p => function() {
+                if(p.mouseX > 0 && p.mouseX < p.canvasSize && p.mouseY > 0 && p.mouseY < p.canvasSize) {//onclick
+                    clearExtraCanvases();
+                    hidePopups();
+                    child.cloneTo(element).then(clone => showImageSelectPopup(clone));
+                }
+            })));
+        });
+    } else {
+        clearExtraCanvases();
+        hidePopups();
+        element.addableChildren[0].cloneTo(element).then(clone => showImageSelectPopup(clone));
+    }
 
     document.getElementById("popup").style = "";
     document.getElementById("element_select").hidden = false;
@@ -162,10 +168,6 @@ function showElementSelectPopup(element) {
 function showMakerSelectPopup(element) {
     document.getElementById("popup").style = "";
     document.getElementById("maker_select").hidden = false;
-}
-function showElementLoadPopup() {
-    document.getElementById("popup").style = "";
-    document.getElementById("element_load").hidden = false;
 }
 let packURL = "examplePack/";
 function changeMaker() {
@@ -254,7 +256,6 @@ function updateSelectedColor() {
 function hidePopups() {
     document.getElementById("popup").style = "display:none;";
     document.getElementById("element_select").hidden = true;
-    document.getElementById("element_load").hidden = true;
     document.getElementById("element_export").hidden = true;
     document.getElementById("maker_select").hidden = true;
 }
@@ -290,11 +291,10 @@ function hideColorControls(save) {
 }
 function hideColorPicker(save) {
     if(save) {
-        selectedElement.addColorOption(getPickedColor());
+        selectedElement.addColorToPalette(getPickedColor());
         selectedElement.setDisplayColor(getPickedColor());
     }
     hideControls(false);
-    showColorPalette();
 }
 function hideMovementControls(save) {
     if(save) {
@@ -324,10 +324,12 @@ async function loadPack(url) {
     pack = {
         name: json.name,
         canvasWidth: json.canvasWidth,
-        canvasHeight: json.canvasHeight
+        canvasHeight: json.canvasHeight,
+        defaultPalette: json.defaultPalette || ["white", "black", "tan", "brown", "red", "orange", "yellow", "green", "blue", "purple"]
     };
     root = new ElementContainer();
     await root.init(json.root, true, true);
+    updateDraw = true;
 }
 async function loadChanges(changes) {
     try {
@@ -357,16 +359,22 @@ function getJSON() {
     };
     Object.keys(elementLookupTable).forEach(key => {
         if(elementLookupTable[key].base) {
-            json.editedElements.push(elementLookupTable[key].exportJSON());
+            let j = elementLookupTable[key].exportJSON();
+            if(Object.keys(j).length > 1) {
+                json.editedElements.push(j);
+            }
         }
     });
     addedElements.forEach(element => {
-        json.addedElements.push(element.exportJSON());
+        let j = element.exportJSON();
+        if(Object.keys(j).length > 1) {
+            json.addedElements.push(j);
+        }
     });
     return json;
 }
 function showElementExportPopup() {
-    console.log(JSON.stringify(getJSON()));
+    //console.log(JSON.stringify(getJSON()));
     document.getElementById("popup").style = "";
     document.getElementById("element_export").hidden = false;
     document.getElementById("export_json").innerHTML = JSON.stringify(getJSON());
@@ -384,18 +392,6 @@ function downloadChanges() {
 function saveChangesToLocalStorage() {
     localStorage.setItem("packURL", packURL);
     localStorage.setItem("changes", JSON.stringify(getJSON()));
-}
-function getPrevIcon() {
-    if(window.innerWidth / window.innerHeight < 5/4) {
-        return "assets/left.png";
-    }
-    return "assets/up.png";
-}
-function getNextIcon() {
-    if(window.innerWidth / window.innerHeight < 5/4) {
-        return "assets/right.png";
-    }
-    return "assets/down.png";
 }
 
 document.addEventListener("click", function(event) {
@@ -430,7 +426,7 @@ let addedElements = [];
 let updateDraw = true;
 
 async function onLoad() {
-    if(localStorage.getItem("changes") != undefined) {
+    if(localStorage.getItem("changes") != undefined && localStorage.getItem("changes") != "undefined") {
         await loadChanges(localStorage.getItem("changes"));
     }
     root.addNodesTo(document.getElementById("elements"));

@@ -145,6 +145,12 @@ input[type="range"]::-moz-slider-thumb {
 #selectable_elements > canvas {
     border-radius: var(--border-radius);
 }
+.prev {
+    content: var(--prev-image);
+}
+.next {
+    content: var(--next-image);
+}
 
 @media (min-aspect-ratio: 5/3) {
     #workspace {
@@ -161,6 +167,8 @@ input[type="range"]::-moz-slider-thumb {
 @media (min-aspect-ratio: 1) {
     :root {
         --border-radius: 1vh;
+        --prev-image: url("assets/up.png");
+        --next-image: url("assets/down.png");
     }
     h1 {
         margin-top: 1vh;
@@ -213,7 +221,7 @@ input[type="range"]::-moz-slider-thumb {
         height: 70vh;
     }
     .selected {
-        border:0.5vh solid var(--button-color);
+        border:0.5vh solid var(--button-confirm-color);
     }
     #elements {
         flex-direction: column;
@@ -270,7 +278,7 @@ input[type="range"]::-moz-slider-thumb {
         'image image . . .'
         'image image . . .';
     }
-    .element_outline {
+    .inset_element {
         padding-left: 2.5vh;
         margin-left: 1.7vh;
         margin-bottom: 1vh;
@@ -281,6 +289,12 @@ input[type="range"]::-moz-slider-thumb {
     }
 }
 @media (max-aspect-ratio: 1) {
+    :root {
+        --border-radius: 1vw;
+        line-height: 1;
+        --prev-image: url("assets/left.png");
+        --next-image: url("assets/right.png");
+    }
     @media(min-aspect-ratio: 0.6) {
         #canvas_container > canvas {
             width: 50vw;
@@ -292,7 +306,7 @@ input[type="range"]::-moz-slider-thumb {
             margin: 0.3vh;
             padding: 0.3vh;
         }
-        .element_outline {
+        .inset_element {
             padding-bottom: 3.5vh;
             margin-bottom: 1vw;
             margin-right: 1vw;
@@ -349,7 +363,7 @@ input[type="range"]::-moz-slider-thumb {
             margin: 0.8vw;
             padding: 0.5vw;
         }
-        .element_outline {
+        .inset_element {
             padding-bottom: 6.5vw;
             margin-bottom: 1vw;
             margin-right: 1vw;
@@ -358,10 +372,6 @@ input[type="range"]::-moz-slider-thumb {
     h1 {
         margin-top: 1vw;
         margin-bottom: 0;
-    }
-    :root {
-        --border-radius: 1vw;
-        line-height: 1;
     }
     textarea {
         width: 90vw;
@@ -395,7 +405,7 @@ input[type="range"]::-moz-slider-thumb {
         padding: 5vw;
     }
     .selected {
-        border:0.5vw solid var(--button-color);
+        border:0.5vw solid var(--button-confirm-color);
     }
     .element {
         margin-right: 1vw;

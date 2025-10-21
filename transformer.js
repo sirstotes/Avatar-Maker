@@ -46,30 +46,30 @@ class ConstrainedTransform extends Transform {
     }
     getJSON() {
         const json = super.getJSON();
-        if(this.translationMax != undefined) {
-            if(!json.hasOwnProperty("translation")) {json.translation = {};}
-            json.translation.max = this.translationMax;
-        }
-        if(this.translationMin != undefined) {
-            if(!json.hasOwnProperty("translation")) {json.translation = {};}
-            json.translation.min = this.translationMin;
-        }
-        if(this.rotationMax != undefined) {
-            if(!json.hasOwnProperty("rotation")) {json.rotation = {};}
-            json.rotation.max = this.rotationMax;
-        }
-        if(this.rotationMin != undefined) {
-            if(!json.hasOwnProperty("rotation")) {json.rotation = {};}
-            json.rotation.min = this.rotationMin;
-        }
-        if(this.scaleMax != undefined) {
-            if(!json.hasOwnProperty("scale")) {json.scale = {};}
-            json.scale.max = this.scaleMax;
-        }
-        if(this.scaleMin != undefined) {
-            if(!json.hasOwnProperty("scale")) {json.scale = {};}
-            json.scale.min = this.scaleMin;
-        }
+        // if(this.translationMax != undefined) {//I don't think there's a scenario where you can change the max and min transforms
+        //     if(!json.hasOwnProperty("translation")) {json.translation = {};}
+        //     json.translation.max = this.translationMax;
+        // }
+        // if(this.translationMin != undefined) {
+        //     if(!json.hasOwnProperty("translation")) {json.translation = {};}
+        //     json.translation.min = this.translationMin;
+        // }
+        // if(this.rotationMax != undefined) {
+        //     if(!json.hasOwnProperty("rotation")) {json.rotation = {};}
+        //     json.rotation.max = this.rotationMax;
+        // }
+        // if(this.rotationMin != undefined) {
+        //     if(!json.hasOwnProperty("rotation")) {json.rotation = {};}
+        //     json.rotation.min = this.rotationMin;
+        // }
+        // if(this.scaleMax != undefined) {
+        //     if(!json.hasOwnProperty("scale")) {json.scale = {};}
+        //     json.scale.max = this.scaleMax;
+        // }
+        // if(this.scaleMin != undefined) {
+        //     if(!json.hasOwnProperty("scale")) {json.scale = {};}
+        //     json.scale.min = this.scaleMin;
+        // }
         return json;
     }
     translate(x, y) {

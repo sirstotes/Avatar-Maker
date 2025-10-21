@@ -23,13 +23,20 @@ class ImageLayer {
 class LayeredImage {
     constructor(packURL, layers, thumbnail = {scale:1, x:0, y:0}) {
         this.layers = [];
-        layers.forEach(layer => {
-            if (layer instanceof ImageLayer) {
-                this.layers.push(layer);
-            } else {
-                this.layers.push(new ImageLayer(packURL, layer));
-            }
-        });
+        if(layers instanceof Array) {
+            layers.forEach(layer => {
+                if (layer instanceof ImageLayer) {
+                    this.layers.push(layer);
+                } else {
+                    this.layers.push(new ImageLayer(packURL, layer));
+                }
+            });
+        } else if (layers instanceof ImageLayer) {
+            this.layers.push(layers);
+        } else {
+            this.layers.push(new ImageLayer(packURL, layers));
+        }
+        
         this.thumbnail = thumbnail;
     }
     draw(p, tintColor) {

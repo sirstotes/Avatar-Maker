@@ -9,7 +9,7 @@ class Element extends ElementContainer {
             displayTint: "white",
             savedTint: "white",
             customColorsAllowed: true,
-            palette: ["white"],
+            palette: undefined,
             exportDeepCopies: false,
             exportOptions: ["displayTint", "savedTint", "customColorsAllowed", "palette"],
             defaultKeys: ["displayTint", "savedTint"],
@@ -24,12 +24,15 @@ class Element extends ElementContainer {
                 };
             },
             getJSON: function(element) {
-                return {
-                    "key":"colors",
-                    "value": {
-                        "default": element.controls.colors.displayTint
-                    }
+                if(element.getDisplayColor() != "white") {
+                    let json = {"key":"colors","value":{}};
+                    json.value.default = element.getDisplayColor();
+                    return json;
                 }
+                return undefined;
+                // if(element.hasColorPalette()) { //Not sure if I wanna save color palettes?
+                //     json.value.palette = element.getColorPalette();
+                // }
             },
             getStyle: function(element) {
                 if(element.getDisplayColor() != "white") {
@@ -42,6 +45,7 @@ class Element extends ElementContainer {
         this.name = "";
         this.thumbnail = undefined;
         this.images = [];
+        this.afterImages = [];
         this.selectedImage = 0;
         this.childrenNode = undefined;
         await this.processJSON(json);
@@ -50,11 +54,9 @@ class Element extends ElementContainer {
             elementLookupTable[this.name] = this;
         }
 
-        if(this.controls.colors.palette.hasOwnProperty("copy")) {
-            if(elementLookupTable.hasOwnProperty(this.controls.colors.palette.copy)) {
-                this.controls.colors.palette = elementLookupTable[this.controls.colors.palette.copy].controls.colors.palette;
-            } else {
-                this.controls.colors.palette = ["white"];
+        if(this.hasColorPalette() && this.getColorPalette().hasOwnProperty("copy")) {
+            if(elementLookupTable.hasOwnProperty(this.getColorPalette().copy)) {
+                this.setColorPalette(elementLookupTable[this.getColorPalette().copy].getColorPalette());
             }
         }
     }
@@ -77,7 +79,10 @@ class Element extends ElementContainer {
             h: h
         };
     }
-    getColorOptions() {
+    getColorPalette() {
+        if(this.controls.colors.palette == undefined) {
+            return pack.defaultPalette;
+        }
         return this.controls.colors.palette;
     }
     getCurrentImage() {
@@ -85,7 +90,7 @@ class Element extends ElementContainer {
     }
     getDisplayColor() {
         if(this.controls.colors.displayTint == "random") {
-            this.setDisplayColor(this.controls.colors.palette[Math.floor(Math.random() * this.controls.colors.palette.length)]);
+            this.setDisplayColor(this.getColorPalette()[Math.floor(Math.random() * this.getColorPalette().length)]);
             this.saveDisplayColor();
         }
         if(this.controls.colors.displayTint instanceof Object) {
@@ -107,9 +112,12 @@ class Element extends ElementContainer {
         }
         return this.selectedImage;
     }
-    addColorOption(color) {
-        if(!this.getColorOptions().includes(color)) {
-            this.getColorOptions().push(color);
+    hasColorPalette() {
+        return this.controls.colors.palette != undefined;
+    }
+    addColorToPalette(color) {
+        if(!this.getColorPalette().includes(color)) {
+            this.setColorPalette([...this.getColorPalette(), color]);
         }
     }
     createMainButton() {
@@ -164,9 +172,9 @@ class Element extends ElementContainer {
         this.resetDisplayColor();
     }
     removeColorOption(color) {
-        for(let i = this.getColorOptions().length-1; i > -1; i --) {
-            if(this.getColorOptions()[i] == color) {
-                this.getColorOptions().splice(i, 1);
+        for(let i = this.getColorPalette().length-1; i > -1; i --) {
+            if(this.getColorPalette()[i] == color) {
+                this.getColorPalette().splice(i, 1);
             }
         }
     }
@@ -193,11 +201,14 @@ class Element extends ElementContainer {
         });
         super.setup(p);
     }
+    setColorPalette(palette) {
+        this.controls.colors.palette = palette;
+    }
     setDisplayColor(color) {
         this.controls.colors.displayTint = color;
     }
     async processJSON(json, refreshNode = false) {
-        await super.processJSON(json, refreshNode);
+        await super.processJSON(json, false);
         for(let i = 0; i < Object.keys(json).length; i ++) {
             let key = Object.keys(json)[i];
             const option = json[key];

@@ -12,7 +12,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <h1>OpenAvi v0.2</h1>
+        <h1>OpenAvi v0.3</h1>
         <div id="workspace">
             <div id="canvas">
                 <div id="controls_position">
@@ -45,17 +45,18 @@
                             <input oninput="updateSelectedColor();" class="extrude" type="range" id="color_picker_lightness" min="0" max="100"><br>
                             <!-- <input oninput="updateSelectedColor(this.value);" id="color_picker_input" type="color" style="width:3em;height:3em;"><br>
                              -->
-                            <button class="extrude" onclick="hideColorPicker(true);" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+                            <button class="extrude" onclick="hideColorPicker(true);hideColorControls(true);" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
                             <button class="extrude" onclick="hideColorPicker(false);" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
                         </div>
                     </div>
                 </div>
                 <div id="canvas_container"></div>
-                <div><button class="extrude" onclick="showMakerSelectPopup();"><img class="icon" src="assets/browser.png"></button>
-                <button class="extrude" onclick="saveCanvas();"><img class="icon" src="assets/save.png"></button>
-                <button class="extrude" onclick="tryReset(this);"><img class="icon" src="assets/refresh.png"></button>
-                <button class="extrude" onclick="showElementExportPopup();"><img class="icon" src="assets/download-file.png"></button>
-                <button class="extrude" onclick="showElementLoadPopup();"><img class="icon" src="assets/notes.png"></button></div>
+                <div>
+                    <button class="extrude" onclick="showMakerSelectPopup();"><img class="icon" src="assets/browser.png"></button>
+                    <button class="extrude" onclick="saveCanvas();"><img class="icon" src="assets/save.png"></button>
+                    <button class="extrude" onclick="tryReset(this);"><img class="icon" src="assets/refresh.png"></button>
+                    <button class="extrude" onclick="showElementExportPopup();"><img class="icon" src="assets/notes.png"></button>
+                </div>
             </div>
             <div id="elements">
             </div>
@@ -67,20 +68,14 @@
                 <button style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button> -->
                 <button class="extrude" onclick="clearExtraCanvases();hidePopups();" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
             </div>
-            <div id="element_load" hidden="true">
-                <h3>Past JSON to load an in-progress image:</h3>
-                <textarea id="element_json" rows="30" type="text"></textarea>
-                <br>
-                <button class="extrude" onclick="loadChanges(document.getElementById('element_json').value);hidePopups();" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
-                <button class="extrude" onclick="hidePopups();" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
-            </div>
             <div id="element_export" hidden="true">
-                <h3>Copy below JSON to load an in-progress image:</h3>
+                <h3>Below is the save file for your image. Load a save file by pasting into the text box and pressing <img class="tiny_icon" src="assets/upload.png"></h3>
                 <textarea id="export_json" rows="30" type="text"></textarea>
                 <br>
                 <button class="extrude" onclick="copyChanges(this);"><img class="icon" src="assets/clone.png"></button>
                 <button class="extrude" onclick="downloadChanges();"><img class="icon" src="assets/download.png"></button>
-                <button class="extrude" onclick="hidePopups();" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+                <button class="extrude" onclick="loadChanges(document.getElementById('export_json').value);hidePopups();"><img class="icon" src="assets/upload.png"></button>
+                <button class="extrude" onclick="hidePopups();" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
             </div>
             <div id="maker_select" hidden="true">
                 <input id="maker_url" size="100" type="text" value="examplePack/">

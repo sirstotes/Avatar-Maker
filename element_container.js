@@ -90,7 +90,6 @@ class ElementContainer {
                     return {
                         "key":"hideable",
                         "value": {
-                            "allowEdit": element.controls.hideable.allowEdit,
                             "hidden": element.isHidden()
                         }
                     }
@@ -126,10 +125,13 @@ class ElementContainer {
                     }
                 },
                 getJSON: function(element) {
-                    return {
-                        "key":"removeable",
-                        "value": element.controls.removeable.allowEdit
+                    if(element.controls.removeable.allowEdit) {
+                        return {
+                            "key":"removeable",
+                            "value": element.controls.removeable.allowEdit
+                        }
                     }
+                    return undefined;
                 }
             }
         };
@@ -233,14 +235,16 @@ class ElementContainer {
         if(this.name != "") {
             options.name = this.name;
         }
-        parentElementContainer.addChild(await this.getClone(options));
+        let clone = await this.getClone(options);
+        parentElementContainer.addChild(clone);
         parentElementContainer.refreshChildrenNode();
+        return clone;
     }
     createChildrenNode() {
         const div = document.createElement("div");
         div.classList.add("element_children");
-        if(!this.outermost) {
-            div.classList.add("element_outline");
+        if(this.collapsible) {
+            div.classList.add("inset_element");
         }
         this.children.forEach(child => {
             child.addNodesTo(div);
@@ -288,12 +292,12 @@ class ElementContainer {
         if(this.collapsible) {
             const collapseButton = document.createElement("button");
             collapseButton.classList.add("extrude");
-            collapseButton.innerHTML = `<img class='tiny_icon' src='${this.collapsed ? getPrevIcon() : getNextIcon()}'>`;
+            collapseButton.innerHTML = `<img class='tiny_icon ${this.collapsed ? "prev" : "next"}'>`;
             collapseButton.onclick = function() {
                 if(thisInstance.toggleCollapse()) {
-                    this.innerHTML = `<img class='tiny_icon' src='${getPrevIcon()}'>`;
+                    this.innerHTML = `<img class='tiny_icon prev'>`;
                 } else {
-                    this.innerHTML = `<img class='tiny_icon' src='${getNextIcon()}'>`;
+                    this.innerHTML = `<img class='tiny_icon next'>`;
                 }
             };
             element.appendChild(collapseButton);
@@ -310,7 +314,7 @@ class ElementContainer {
                 button.classList.add("extrude");
                 if(option.hasOwnProperty("getStyle")) {
                     button.getStyle = option.getStyle;
-                    button.stye = option.getStyle(this);
+                    button.style = option.getStyle(this);
                 }
                 button.innerHTML = this.getIconForOption(key);
                 button.defaultInnerHTML = option.icon;
@@ -326,7 +330,7 @@ class ElementContainer {
             sideDiv.classList.add("side");
             const button1 = document.createElement("button");
             button1.classList.add("extrude");
-            button1.innerHTML = `<img class='tiny_icon' src='${getPrevIcon()}'>`;
+            button1.innerHTML = `<img class='tiny_icon prev'>`;
             button1.onclick = function() {
                 thisInstance.moveUp();
                 updateDraw = true;
@@ -335,7 +339,7 @@ class ElementContainer {
             sideDiv.appendChild(button1);
             const button2 = document.createElement("button");
             button2.classList.add("extrude");
-            button2.innerHTML = `<img class='tiny_icon' src='${getNextIcon()}'>`;
+            button2.innerHTML = `<img class='tiny_icon next'>`;
             button2.onclick = function() {
                 thisInstance.moveDown();
                 updateDraw = true;
@@ -361,12 +365,14 @@ class ElementContainer {
     }
     exportJSON() {
         const json = {
-            "name": this.name,
-            "transform": this.savedTransform.getJSON(),
-            "hidden": this.isHidden()
+            "name": this.name
         };
         if(!this.base) {
             json.parentName = this.parent.name;
+        }
+        let transformJSON = this.savedTransform.getJSON();
+        if(Object.keys(transformJSON).length != 0) {
+            json.transform = transformJSON;
         }
         Object.keys(this.controls).forEach(key => {
             if(this.controls[key].hasOwnProperty("getJSON")) {
