@@ -1,21 +1,43 @@
+// let blendModes = {
+//     "normal": function(a, b) {
+//         let alpha = a.a + b.a * (1 - a.a);
+//         let r = (a.r * a.a + b.r * b.a * (1 - a.a)) / alpha;
+//         let g = (a.g * a.a + b.g * b.a * (1 - a.a)) / alpha;
+//         let b = (a.b * a.a + b.b * b.a * (1 - a.a)) / alpha;
+//     }
+// };
+// function applyPixels(lower, upper, blend) {
+//     return lower.map((pixel, index) => blend(pixel, upper[index]));
+// }
+class ImageSettings {
+    constructor(tintColor, clipFunction = undefined) {
+        this.tintColor = tintColor;
+        this.clipFunction = clipFunction;
+    }
+}
 class ImageLayer {
-    constructor(packURL, source, applyTint = true) {
+    constructor(packURL, source, applyTint = true, applyClip = true) {
         if(source instanceof Object) {
             this.source = packURL + source.source;
             this.applyTint = source.applyTint;
+            this.applyClip = source.applyClip;
         } else {
             this.source = packURL + source;
             this.applyTint = applyTint;
+            this.applyClip = applyClip;
         }
         this.img = undefined; //not loaded yet
     }
     load(p) {
         this.img = p.loadImage(this.source);
     }
-    draw(p, tintColor) {
-        if(this.applyTint) {
-            p.tint(tintColor);
+    draw(p, imageSettings) {
+        if(this.applyTint && imageSettings.tintColor != undefined) {
+            p.tint(imageSettings.tintColor);
         }
+        // if(this.applyClip && imageSettings.clipFunction != undefined) {
+        //     p.clip(imageSettings.clipFunction);
+        // }
         p.image(this.img, 0, 0);
         p.noTint();
     }
@@ -39,8 +61,8 @@ class LayeredImage {
         
         this.thumbnail = thumbnail;
     }
-    draw(p, tintColor) {
-        this.layers.forEach(layer => layer.draw(p, tintColor))
+    draw(p, imageSettings) {
+        this.layers.forEach(layer => layer.draw(p, imageSettings));
     }
     getWidth() {
         if(this.layers != undefined) {

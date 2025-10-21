@@ -6,13 +6,8 @@
         "transform": {
             "translation": {
                 "default": {"x": 400, "y": 475}
-            },
-            "rotation": {
-                "min":-90,
-                "max":90
             }
         },
-        "canAddChildren": true,
         "children": [
             {
                 "name": "Body",

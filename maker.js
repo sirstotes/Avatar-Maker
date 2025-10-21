@@ -124,6 +124,7 @@ function rotateElement(r) {
 //     });
 // }
 function showImageSelectPopup(element) {
+    hideControls(true);
     const container = document.getElementById("selectable_elements");
     container.innerHTML = "";
     //container.selectedImage = element.getCurrentImage();
@@ -143,6 +144,7 @@ function showImageSelectPopup(element) {
     document.getElementById("element_select").hidden = false;
 }
 function showElementSelectPopup(element) {
+    hideControls(true);
     const container = document.getElementById("selectable_elements");
     container.innerHTML = "";
     selectedElement = element;
@@ -166,6 +168,7 @@ function showElementSelectPopup(element) {
     document.getElementById("element_select").hidden = false;
 }
 function showMakerSelectPopup(element) {
+    hideControls(true);
     document.getElementById("popup").style = "";
     document.getElementById("maker_select").hidden = false;
 }
@@ -313,6 +316,7 @@ function removeSelectedColor() {
     selectedElement.removeColorOption(selectedElement.getDisplayColor());
 }
 async function loadPack(url) {
+    packURL = url;
     if(p != undefined) {
         p.remove();
     }
@@ -374,6 +378,7 @@ function getJSON() {
     return json;
 }
 function showElementExportPopup() {
+    hideControls(true);
     //console.log(JSON.stringify(getJSON()));
     document.getElementById("popup").style = "";
     document.getElementById("element_export").hidden = false;
@@ -425,6 +430,18 @@ let elementLookupTable = {};
 let addedElements = [];
 let updateDraw = true;
 
+function setRGBA(pixels, width, x, y, r, g, b, a) {
+    let n = (x + y*width) * 4;
+    pixels[n] = r;
+    pixels[n + 1] = g;
+    pixels[n + 2] = b;
+    pixels[n + 3] = a;
+}
+function getRGBA(pixels, width, x, y) {
+    let n = (x + y*width) * 4;
+    return [pixels[n], pixels[n + 1], pixels[n + 2], pixels[n + 3]];
+}
+
 async function onLoad() {
     if(localStorage.getItem("changes") != undefined && localStorage.getItem("changes") != "undefined") {
         await loadChanges(localStorage.getItem("changes"));
@@ -450,6 +467,7 @@ async function onLoad() {
         p.draw = function() {
             if(updateDraw) {
                 updateDraw = false;
+                root.calculateMasks();
                 p.clear();
                 root.draw(p);
                 if(selectedElement != undefined) {
@@ -462,16 +480,19 @@ async function onLoad() {
                             element.style = "bottom:0;";
                         });
                     }
-                    // document.getElementById("controls_position").style = `left: 0vh; top:${top ? 0 : 70}vh; transform:translate(0, ${top ? 0 : -5}em);`;
-                    // document.getElementById("movement_controls").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
-                    // document.getElementById("color_controls").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
-                    // document.getElementById("color_picker").style = `width: ${70 * (pack.canvasWidth/pack.canvasHeight)}vh;`;
                     selectedElement.drawBoundingBox(p);
                 }
             }
             if (p.frameCount%50 == 0) {
                 updateDraw = true;
             }
+        }
+
+        p.mouseClicked = function() {
+            p.loadPixels();
+            //setRGBA(p.pixels, p.width, Math.floor(p.mouseX), Math.floor(p.mouseY), 255, 0, 0, 255);
+            console.log(getRGBA(p.pixels, p.width, Math.floor(p.mouseX), Math.floor(p.mouseY)));
+            //p.updatePixels();
         }
     });
 }

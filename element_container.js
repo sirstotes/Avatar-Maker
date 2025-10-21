@@ -60,11 +60,10 @@ class ElementContainer {
                 exportDeepCopies: false,
                 exportOptions: ["clipping"],
                 name: "Clip",
-                icon: "<img class='icon' src='assets/shown.png'>",
+                icon: "<img class='icon' src='assets/mask.png'>",
                 getOnclick: function(element) {
                     return function() {
-                        element.toggleHidden();
-                        this.innerHTML = element.getIconForOption("display");
+                        element.toggleClip();
                     }
                 }
             },
@@ -80,6 +79,9 @@ class ElementContainer {
                     return function() {
                         updateDraw = true;
                         element.toggleHidden();
+                        console.log(element.name);
+                        console.log("Before: ", element.getElementBefore());
+                        console.log("After: ", element.getElementAfter());
                         this.innerHTML = element.getIconForOption("hideable");
                     }
                 },
@@ -112,6 +114,9 @@ class ElementContainer {
                 icon: "<img class='icon' src='assets/delete.png'>",
                 getOnclick: function(element) {
                     return function() {
+                        console.log(element.name);
+                        console.log("Before: ", element.getElementBefore());
+                        console.log("After: ", element.getElementAfter());
                         this.style = "background-color:red;";
                         this.innerHTML = "<img class='icon' src='assets/check.png' style='filter:invert(1);'>";
                         this.onclick = function() {
@@ -152,6 +157,12 @@ class ElementContainer {
     isHidden() {
         return this.controls.hideable.hidden;
     }
+    getClipFunction() {
+        if(this.parent != undefined) {
+            return this.parent.getClipFunction();
+        }
+        return undefined;
+    }
     async getClone(options) {
         let e = new this.constructor();
         await e.init(options);
@@ -162,11 +173,27 @@ class ElementContainer {
         addedElements.push(e);
         return e;
     }
-    getIconForOption(option) {
-        if(option == "hideable" && this.isHidden()) {
-            return this.controls[option].icon2;
+    getElementBefore(child) {
+        for(let i = this.children.indexOf(child)-1; i > 0; i --) {
+            if(this.children[i] instanceof Element) {
+                return this.children[i];
+            }
         }
-        return this.controls[option].icon;
+        if(this.parent == undefined) {
+            return undefined;
+        }
+        return this.parent.getElementBefore(this);
+    }
+    getElementAfter(child) {
+        for(let i = this.children.indexOf(child)+1; i < this.children.length; i ++) {
+            if(this.children[i] instanceof Element) {
+                return this.children[i];
+            }
+        }
+        if(this.parent == undefined) {
+            return undefined;
+        }
+        return this.parent.getElementAfter(this);
     }
     getGlobalTranslation() {
         let translation = vec(0, 0);
@@ -186,6 +213,18 @@ class ElementContainer {
         scale.y *= this.displayTransform.scale.y * this.controls.verticalFlip.flip;
         return scale;
     }
+    getIconForOption(option) {
+        if(option == "hideable" && this.isHidden()) {
+            return this.controls[option].icon2;
+        }
+        return this.controls[option].icon;
+    }
+    getNextElement() {
+        if(this.parent == undefined) {
+            return undefined;
+        }
+        return this.parent.getElementAfter(this);
+    }
     getOptionAmount() {
         let num = 1;
         Object.keys(this.controls).forEach(key => {
@@ -194,6 +233,12 @@ class ElementContainer {
             }
         });
         return num;
+    }
+    getPreviousElement() {
+        if(this.parent == undefined) {
+            return undefined;
+        }
+        return this.parent.getElementBefore(this);
     }
     addChild(element) {
         this.children.push(element);
@@ -219,6 +264,16 @@ class ElementContainer {
         }
         this.displayTransform.apply(p);
         p.scale(this.controls.horizontalFlip.flip, this.controls.verticalFlip.flip);
+    }
+    shouldCalculateMask() {
+        return this.children.some((child) => child.shouldCalculateMask());
+    }
+    calculateMask() {
+
+    }
+    calculateMasks() {
+        this.calculateMask();
+        this.children.forEach(child => child.calculateMasks());
     }
     async clone() {
         const options = this.exportOptions();
@@ -571,6 +626,9 @@ class ElementContainer {
         this.addableChildren.forEach(child => {
             child.setup(p);
         });
+    }
+    toggleClip() {
+        this.controls.clip.clipping = !this.controls.clip.clipping;
     }
     toggleCollapse() {
         this.collapsed = !this.collapsed;

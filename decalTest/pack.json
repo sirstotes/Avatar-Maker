@@ -1,0 +1,38 @@
+{
+    "name": "Decal Test",
+    "canvasWidth": 400,
+    "canvasHeight": 400,
+    "root": {
+        "transform": {
+            "translation": {
+                "default": {"x": 200, "y": 200}
+            }
+        },
+        "children": [
+            {
+                "name": "circle",
+                "moveable": true,
+                "hideable": true,
+                "transform": {
+                    "scale": {
+                        "default": {"x":0.25, "y":0.25}
+                    }
+                },
+                "image": {
+                    "variant": "circle.png"
+                },
+                "children": [
+                    {
+                        "name": "decal",
+                        "clip": true,
+                        "moveable": true,
+                        "hideable": true,
+                        "image": {
+                            "variant": "print.png"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

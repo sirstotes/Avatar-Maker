@@ -79,6 +79,20 @@ class Element extends ElementContainer {
             h: h
         };
     }
+    getClipFunction() {
+        if(!this.isHidden()) {
+            let parentClip = this.parent.getClipFunction();
+            let thisInstance = this;
+            return function() {
+                thisInstance.applyTransforms(p);
+                if(thisInstance.images.length > 0) {
+                    thisInstance.getCurrentImage().draw(p, new ImageSettings(undefined, parentClip));
+                }
+                p.resetMatrix();
+            }
+        }
+        return undefined;
+    }
     getColorPalette() {
         if(this.controls.colors.palette == undefined) {
             return pack.defaultPalette;
@@ -120,6 +134,9 @@ class Element extends ElementContainer {
             this.setColorPalette([...this.getColorPalette(), color]);
         }
     }
+    calculateMasks() {
+        
+    }
     createMainButton() {
         const mainButton = document.createElement("button");
         mainButton.classList.add("image");
@@ -146,7 +163,7 @@ class Element extends ElementContainer {
         if(!this.isHidden()) {
             this.applyTransforms(p);
             if(this.images.length > 0) {
-                this.getCurrentImage().draw(p, this.getDisplayColor());
+                this.getCurrentImage().draw(p, new ImageSettings(this.getDisplayColor(), this.getClipFunction()));
             }
             p.resetMatrix();
             super.draw(p);
