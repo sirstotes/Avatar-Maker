@@ -426,21 +426,10 @@ window.addEventListener("beforeunload", function(e){
 let p;
 let pack;
 let root;
+let maskBuffer;
 let elementLookupTable = {};
 let addedElements = [];
 let updateDraw = true;
-
-function setRGBA(pixels, width, x, y, r, g, b, a) {
-    let n = (x + y*width) * 4;
-    pixels[n] = r;
-    pixels[n + 1] = g;
-    pixels[n + 2] = b;
-    pixels[n + 3] = a;
-}
-function getRGBA(pixels, width, x, y) {
-    let n = (x + y*width) * 4;
-    return [pixels[n], pixels[n + 1], pixels[n + 2], pixels[n + 3]];
-}
 
 async function onLoad() {
     if(localStorage.getItem("changes") != undefined && localStorage.getItem("changes") != "undefined") {
@@ -451,13 +440,16 @@ async function onLoad() {
         p.preload = function() {
             root.preload(p);
         }
+        let canvas;
         p.setup = function() {
-            let canvas = p.createCanvas(pack.canvasWidth, pack.canvasHeight);
+            canvas = p.createCanvas(pack.canvasWidth, pack.canvasHeight);
             canvas.removeAttribute("style");
             canvas.parent('canvas_container');
+            maskBuffer = p.createGraphics(pack.canvasWidth, pack.canvasHeight);
             p.angleMode(p.DEGREES);
             p.imageMode(p.CENTER);
             p.rectMode(p.CENTER);
+            p.drawingContext.willReadFrequently = true;
             root.setup(p);
             document.getElementsByClassName("controls_container").forEach(element => {
                 element.style = `aspect-ratio:${pack.canvasWidth}/${pack.canvasHeight};`;
@@ -467,9 +459,8 @@ async function onLoad() {
         p.draw = function() {
             if(updateDraw) {
                 updateDraw = false;
-                root.calculateMasks();
                 p.clear();
-                root.draw(p);
+                root.draw(p);//TODO redo rendering with buffers
                 if(selectedElement != undefined) {
                     if(selectedElement.getGlobalTranslation().y > pack.canvasHeight*0.75) {
                         document.getElementsByClassName("controls").forEach(element => {
@@ -483,16 +474,6 @@ async function onLoad() {
                     selectedElement.drawBoundingBox(p);
                 }
             }
-            if (p.frameCount%50 == 0) {
-                updateDraw = true;
-            }
-        }
-
-        p.mouseClicked = function() {
-            p.loadPixels();
-            //setRGBA(p.pixels, p.width, Math.floor(p.mouseX), Math.floor(p.mouseY), 255, 0, 0, 255);
-            console.log(getRGBA(p.pixels, p.width, Math.floor(p.mouseX), Math.floor(p.mouseY)));
-            //p.updatePixels();
         }
     });
 }

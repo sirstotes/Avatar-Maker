@@ -54,19 +54,6 @@ class ElementContainer {
                     }
                 }
             },
-            clip: {
-                allowEdit: false,
-                clipping: false,
-                exportDeepCopies: false,
-                exportOptions: ["clipping"],
-                name: "Clip",
-                icon: "<img class='icon' src='assets/mask.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        element.toggleClip();
-                    }
-                }
-            },
             hideable: {
                 allowEdit: false,
                 hidden: false,
@@ -79,9 +66,6 @@ class ElementContainer {
                     return function() {
                         updateDraw = true;
                         element.toggleHidden();
-                        console.log(element.name);
-                        console.log("Before: ", element.getElementBefore());
-                        console.log("After: ", element.getElementAfter());
                         this.innerHTML = element.getIconForOption("hideable");
                     }
                 },
@@ -157,12 +141,6 @@ class ElementContainer {
     isHidden() {
         return this.controls.hideable.hidden;
     }
-    getClipFunction() {
-        if(this.parent != undefined) {
-            return this.parent.getClipFunction();
-        }
-        return undefined;
-    }
     async getClone(options) {
         let e = new this.constructor();
         await e.init(options);
@@ -173,27 +151,36 @@ class ElementContainer {
         addedElements.push(e);
         return e;
     }
-    getElementBefore(child) {
-        for(let i = this.children.indexOf(child)-1; i > 0; i --) {
-            if(this.children[i] instanceof Element) {
-                return this.children[i];
-            }
-        }
+    // getElementBefore(child) {
+    //     for(let i = this.children.indexOf(child)-1; i > 0; i --) {
+    //         if(this.children[i] instanceof Element) {
+    //             return this.children[i];
+    //         }
+    //     }
+    //     if(this.parent == undefined) {
+    //         return undefined;
+    //     }
+    //     return this.parent.getElementBefore(this);
+    // }
+    // getElementAfter(child) {
+    //     for(let i = this.children.indexOf(child)+1; i < this.children.length; i ++) {
+    //         if(this.children[i] instanceof Element) {
+    //             return this.children[i];
+    //         }
+    //     }
+    //     if(this.parent == undefined) {
+    //         return undefined;
+    //     }
+    //     return this.parent.getElementAfter(this);
+    // }
+    getFirstElementParent() {
         if(this.parent == undefined) {
             return undefined;
         }
-        return this.parent.getElementBefore(this);
-    }
-    getElementAfter(child) {
-        for(let i = this.children.indexOf(child)+1; i < this.children.length; i ++) {
-            if(this.children[i] instanceof Element) {
-                return this.children[i];
-            }
+        if(this.parent instanceof Element) {
+            return this.parent;
         }
-        if(this.parent == undefined) {
-            return undefined;
-        }
-        return this.parent.getElementAfter(this);
+        return this.parent.getFirstElementParent();
     }
     getGlobalTranslation() {
         let translation = vec(0, 0);
@@ -219,12 +206,12 @@ class ElementContainer {
         }
         return this.controls[option].icon;
     }
-    getNextElement() {
-        if(this.parent == undefined) {
-            return undefined;
-        }
-        return this.parent.getElementAfter(this);
-    }
+    // getNextElement() {
+    //     if(this.parent == undefined) {
+    //         return undefined;
+    //     }
+    //     return this.parent.getElementAfter(this);
+    // }
     getOptionAmount() {
         let num = 1;
         Object.keys(this.controls).forEach(key => {
@@ -234,12 +221,12 @@ class ElementContainer {
         });
         return num;
     }
-    getPreviousElement() {
-        if(this.parent == undefined) {
-            return undefined;
-        }
-        return this.parent.getElementBefore(this);
-    }
+    // getPreviousElement() {
+    //     if(this.parent == undefined) {
+    //         return undefined;
+    //     }
+    //     return this.parent.getElementBefore(this);
+    // }
     addChild(element) {
         this.children.push(element);
         element.parent = this;
@@ -264,16 +251,6 @@ class ElementContainer {
         }
         this.displayTransform.apply(p);
         p.scale(this.controls.horizontalFlip.flip, this.controls.verticalFlip.flip);
-    }
-    shouldCalculateMask() {
-        return this.children.some((child) => child.shouldCalculateMask());
-    }
-    calculateMask() {
-
-    }
-    calculateMasks() {
-        this.calculateMask();
-        this.children.forEach(child => child.calculateMasks());
     }
     async clone() {
         const options = this.exportOptions();
@@ -501,9 +478,9 @@ class ElementContainer {
         }
         return pos+1 < this.parent.children.length - 1;
     }
-    preload() {
+    preload(p) {
         this.children.forEach(child => {
-            child.preload();
+            child.preload(p);
         });
     }
     async processJSON(json, refreshNode = false) {
@@ -581,6 +558,14 @@ class ElementContainer {
             this.refreshNode();
         }
     }
+    recalculateParentMask() {
+        let parent = this.getFirstElementParent();
+        if(parent != undefined) {
+            this.applyTransforms(maskBuffer);
+            parent.calculateMask(maskBuffer);
+            p.resetMatrix();
+        }
+    }
     refreshDisplay() {
         this.displayTransform = this.savedTransform.getCopy();
     }
@@ -626,9 +611,6 @@ class ElementContainer {
         this.addableChildren.forEach(child => {
             child.setup(p);
         });
-    }
-    toggleClip() {
-        this.controls.clip.clipping = !this.controls.clip.clipping;
     }
     toggleCollapse() {
         this.collapsed = !this.collapsed;

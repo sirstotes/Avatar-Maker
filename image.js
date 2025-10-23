@@ -1,68 +1,141 @@
-// let blendModes = {
-//     "normal": function(a, b) {
-//         let alpha = a.a + b.a * (1 - a.a);
-//         let r = (a.r * a.a + b.r * b.a * (1 - a.a)) / alpha;
-//         let g = (a.g * a.a + b.g * b.a * (1 - a.a)) / alpha;
-//         let b = (a.b * a.a + b.b * b.a * (1 - a.a)) / alpha;
-//     }
-// };
-// function applyPixels(lower, upper, blend) {
-//     return lower.map((pixel, index) => blend(pixel, upper[index]));
-// }
+function setRGBA(pixels, width, x, y, r, g, b, a) {
+    let n = (x + y*width) * 4;
+    pixels[n] = r;
+    pixels[n + 1] = g;
+    pixels[n + 2] = b;
+    pixels[n + 3] = a;
+}
+function normalBlend(pixels, width, x, y, rA, gA, bA, aA) {
+    let n = (x + y*width) * 4;
+    let rB = pixels[n];
+    let gB = pixels[n+1];
+    let bB = pixels[n+2];
+    let aB = pixels[n+3];
+
+    let aN = aA + aB * (1 - aA);
+    pixels[n] = (rA * aA + rB * aB * (1 - aA)) / aN;
+    pixels[n + 1] = (gA * aA + gB * aB * (1 - aA)) / aN;
+    pixels[n + 2] = (bA * aA + bB * aB * (1 - aA)) / aN;
+    pixels[n + 3] = aN;
+}
+function getRGBA(pixels, width, x, y) {
+    let n = (x + y*width) * 4;
+    return [pixels[n], pixels[n + 1], pixels[n + 2], pixels[n + 3]];
+}
 class ImageSettings {
-    constructor(tintColor, clipFunction = undefined) {
+    constructor(tintColor, bitMask = undefined) {
         this.tintColor = tintColor;
-        this.clipFunction = clipFunction;
+        this.bitMask = bitMask;
     }
 }
 class ImageLayer {
-    constructor(packURL, source, applyTint = true, applyClip = true) {
-        if(source instanceof Object) {
-            this.source = packURL + source.source;
-            this.applyTint = source.applyTint;
-            this.applyClip = source.applyClip;
-        } else {
-            this.source = packURL + source;
-            this.applyTint = applyTint;
-            this.applyClip = applyClip;
-        }
+    constructor(packURL, options, savePixels = false) {
+        this.source = packURL + options.source;
+        this.applyTint = options.applyTint || true;
+        this.savePixels = savePixels;
         this.img = undefined; //not loaded yet
     }
-    load(p) {
+    preload(p) {
         this.img = p.loadImage(this.source);
     }
-    draw(p, imageSettings) {
-        if(this.applyTint && imageSettings.tintColor != undefined) {
-            p.tint(imageSettings.tintColor);
+    setup(p) {
+        if(this.savePixels) {
+            this.img.loadPixels();
+            this.pixels = [...this.img.pixels];//Is it more performant to save the pixels array or load it each frame?
         }
-        // if(this.applyClip && imageSettings.clipFunction != undefined) {
-        //     p.clip(imageSettings.clipFunction);
-        // }
-        p.image(this.img, 0, 0);
-        p.noTint();
+    }
+    draw(canvas, imageSettings) {
+        if(imageSettings.bitMask != undefined) {
+            this.drawPixels(canvas, function(x, y, r, g, b, a) {
+                if(!imageSettings.bitMask[Math.floor(x) + Math.floor(y) * pack.canvasWidth]) {
+                    return;
+                }
+                normalBlend(canvas.pixels, pack.canvasWidth, Math.floor(x), Math.floor(y), r, g, b, a);
+            }, imageSettings.bitMask);
+        } else {
+            if(this.applyTint && imageSettings.tintColor != undefined) {
+                canvas.tint(imageSettings.tintColor);
+            }
+            canvas.image(this.img, 0, 0);
+            canvas.noTint();
+        }
+    }
+    drawPixels(canvas, drawFunction, bitMask) {
+    //TODO: Rather than looping over every pixel in the image, it could be faster to loop over every pixel in the bitmask
+    //It might also be a lot faster to draw the image to a buffer and then just copy the pixels over. I think this is the solution I'm gonna go for.
+        let transform = canvas.drawingContext.getTransform();
+        //const topLeft = transform.transformPoint(new DOMPointReadOnly(-this.img.width * 0.5, -this.img.height * 0.5));
+        //const topRight = transform.transformPoint(new DOMPointReadOnly(this.img.width * 0.5, -this.img.height * 0.5));
+        //const bottomLeft = transform.transformPoint(new DOMPointReadOnly(-this.img.width * 0.5, this.img.height * 0.5));
+        //const bottomRight = transform.transformPoint(new DOMPointReadOnly(this.img.width * 0.5, this.img.height * 0.5));
+        for(let x = 0; x < this.img.width; x += 10) {//TODO: should try not to render every pixel, that's too slow
+            for(let y = 0; y < this.img.height; y += 10) {
+                //let displayX = x;
+                //let displayY = y;
+
+                //Transform point according to image transform
+
+                //This solution is not correct for rotations and leaves gaps
+                //let displayX = canvas.map(x, 0, this.img.width, topLeft.x, bottomRight.x);
+                //let displayY = canvas.map(y, 0, this.img.height, topLeft.y, bottomRight.y);
+
+                //This solution is correct but too slow
+                let f = transform.transformPoint(new DOMPointReadOnly(x - this.img.width * 0.5, y - this.img.height * 0.5));
+                let displayX = f.x;
+                let displayY = f.y;
+                
+                if(displayX < 0 || displayX >= pack.canvasWidth || displayY < 0 || displayY >= pack.canvasHeight) {
+                    continue;
+                }
+                //drawFunction(displayX, displayY, 0, 0, 0, 255);
+                let n = (x + y*this.img.width) * 4;
+                drawFunction(displayX, displayY, this.pixels[n], this.pixels[n + 1], this.pixels[n + 2], this.pixels[n + 3]);
+            }
+        }
     }
 }
 class LayeredImage {
-    constructor(packURL, layers, thumbnail = {scale:1, x:0, y:0}) {
+    constructor(packURL, options) {
         this.layers = [];
-        if(layers instanceof Array) {
-            layers.forEach(layer => {
-                if (layer instanceof ImageLayer) {
-                    this.layers.push(layer);
+        if(options.source instanceof Array) {
+            options.source.forEach(layer => {
+                if (layer instanceof Object) {
+                    this.layers.push(new ImageLayer(packURL, layer, options.savePixels));
                 } else {
-                    this.layers.push(new ImageLayer(packURL, layer));
+                    this.layers.push(new ImageLayer(packURL, {source: layer, applyTint: true}, options.savePixels));
                 }
             });
-        } else if (layers instanceof ImageLayer) {
-            this.layers.push(layers);
+        } else if (options.source instanceof Object) {
+            this.layers.push(new ImageLayer(packURL, options.source, options.savePixels));
         } else {
-            this.layers.push(new ImageLayer(packURL, layers));
+            this.layers.push(new ImageLayer(packURL, {source: options.source, applyTint: true}, options.savePixels));
         }
-        
-        this.thumbnail = thumbnail;
+        this.thumbnail = options.thumbnail;
     }
-    draw(p, imageSettings) {
-        this.layers.forEach(layer => layer.draw(p, imageSettings));
+    calculateMask(buffer) {
+        this.mask = new Array(pack.canvasWidth*pack.canvasHeight).fill(false);
+        //Right now masks are just a binary 0 or 1 to hopefully cut down on performance cost. Could be worth it to check if 0-255 is performant, as it would allow more seamless masking.
+        //If 0-255 does not run in realtime, I'd want to calculate it when exporting the image.
+        buffer.clear();
+        this.draw(buffer, new ImageSettings());
+        buffer.loadPixels();
+        for(let x = 0; x < pack.canvasWidth; x ++) {
+            for (let y = 0; y < pack.canvasHeight; y ++) {
+                this.mask[x + y*pack.canvasHeight] = buffer.pixels[(x + y*pack.canvasHeight) * 4] > 0;
+            }
+        }
+    }
+    getMask() {
+        return this.mask;
+    }
+    draw(canvas, imageSettings) {
+        if(imageSettings.bitMask != undefined) {
+            canvas.loadPixels();
+        }
+        this.layers.forEach(layer => layer.draw(canvas, imageSettings));
+        if(imageSettings.bitMask != undefined) {
+            canvas.updatePixels();
+        }
     }
     getWidth() {
         if(this.layers != undefined) {
@@ -77,10 +150,11 @@ class LayeredImage {
         return 0;
     }
     onclick() {}
-    load(p) {
-        this.layers.forEach(layer => {
-            layer.load(p);
-        });
+    preload(p) {
+        this.layers.forEach(layer => layer.preload(p));
+    }
+    setup() {
+        this.layers.forEach(layer => layer.setup(p));
     }
     getSketch(selected, tintColor, onclickGenerator) {
         let layeredImage = this;
