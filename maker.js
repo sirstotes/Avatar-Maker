@@ -423,6 +423,7 @@ window.addEventListener("beforeunload", function(e){
     saveChangesToLocalStorage();
 });
 
+let buffers;
 let p;
 let pack;
 let root;
@@ -440,16 +441,10 @@ async function onLoad() {
         p.preload = function() {
             root.preload(p);
         }
-        let canvas;
         p.setup = function() {
-            canvas = p.createCanvas(pack.canvasWidth, pack.canvasHeight);
-            canvas.removeAttribute("style");
-            canvas.parent('canvas_container');
-            maskBuffer = p.createGraphics(pack.canvasWidth, pack.canvasHeight);
-            p.angleMode(p.DEGREES);
-            p.imageMode(p.CENTER);
-            p.rectMode(p.CENTER);
-            p.drawingContext.willReadFrequently = true;
+            buffers = new Buffers(p, pack.canvasWidth, pack.canvasHeight);
+            buffers.getCanvas().removeAttribute("style");
+            buffers.getCanvas().parent('canvas_container');
             root.setup(p);
             document.getElementsByClassName("controls_container").forEach(element => {
                 element.style = `aspect-ratio:${pack.canvasWidth}/${pack.canvasHeight};`;
@@ -459,10 +454,10 @@ async function onLoad() {
         p.draw = function() {
             if(updateDraw) {
                 updateDraw = false;
-                p.clear();
-                root.draw(p);//TODO redo rendering with buffers
+                buffers.clear();
+                root.render(buffers);
                 if(selectedElement != undefined) {
-                    if(selectedElement.getGlobalTranslation().y > pack.canvasHeight*0.75) {
+                    if(selectedElement.getGlobalTranslation().y > buffers.getCanvas().height*0.75) {
                         document.getElementsByClassName("controls").forEach(element => {
                             element.style = "";
                         });
@@ -471,7 +466,7 @@ async function onLoad() {
                             element.style = "bottom:0;";
                         });
                     }
-                    selectedElement.drawBoundingBox(p);
+                    selectedElement.drawBoundingBox(buffers.getCanvas());
                 }
             }
         }

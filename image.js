@@ -23,42 +23,42 @@ function getRGBA(pixels, width, x, y) {
     return [pixels[n], pixels[n + 1], pixels[n + 2], pixels[n + 3]];
 }
 class ImageSettings {
-    constructor(tintColor, bitMask = undefined) {
+    constructor() {
+        this.tintColor = undefined;
+    }
+    tint(tintColor) {
         this.tintColor = tintColor;
-        this.bitMask = bitMask;
+        return this;
     }
 }
 class ImageLayer {
     constructor(packURL, options, savePixels = false) {
         this.source = packURL + options.source;
         this.applyTint = options.applyTint || true;
-        this.savePixels = savePixels;
+        //this.savePixels = savePixels;
         this.img = undefined; //not loaded yet
     }
-    preload(p) {
-        this.img = p.loadImage(this.source);
+    preload(p5) {
+        this.img = p5.loadImage(this.source);
     }
-    setup(p) {
-        if(this.savePixels) {
-            this.img.loadPixels();
-            this.pixels = [...this.img.pixels];//Is it more performant to save the pixels array or load it each frame?
-        }
+    setup(p5) {
+        // if(this.savePixels) {
+        //     this.img.loadPixels();
+        //     this.pixels = [...this.img.pixels];//Is it more performant to save the pixels array or load it each frame?
+        // }
     }
-    draw(canvas, imageSettings) {
-        if(imageSettings.bitMask != undefined) {
-            this.drawPixels(canvas, function(x, y, r, g, b, a) {
-                if(!imageSettings.bitMask[Math.floor(x) + Math.floor(y) * pack.canvasWidth]) {
-                    return;
-                }
-                normalBlend(canvas.pixels, pack.canvasWidth, Math.floor(x), Math.floor(y), r, g, b, a);
-            }, imageSettings.bitMask);
-        } else {
-            if(this.applyTint && imageSettings.tintColor != undefined) {
-                canvas.tint(imageSettings.tintColor);
-            }
-            canvas.image(this.img, 0, 0);
-            canvas.noTint();
+    draw(buffer, imageSettings) {
+        // this.drawPixels(buffer, function(x, y, r, g, b, a) {
+        //     if(!imageSettings.bitMask[Math.floor(x) + Math.floor(y) * buffer.width]) {
+        //         return;
+        //     }
+        //     normalBlend(buffer.pixels, buffer.width, Math.floor(x), Math.floor(y), r, g, b, a);
+        // }, imageSettings.bitMask);
+        if(this.applyTint && imageSettings.tintColor != undefined) {
+            buffer.tint(imageSettings.tintColor);
         }
+        buffer.image(this.img, 0, 0);
+        buffer.noTint();
     }
     drawPixels(canvas, drawFunction, bitMask) {
     //TODO: Rather than looping over every pixel in the image, it could be faster to loop over every pixel in the bitmask
@@ -84,7 +84,7 @@ class ImageLayer {
                 let displayX = f.x;
                 let displayY = f.y;
                 
-                if(displayX < 0 || displayX >= pack.canvasWidth || displayY < 0 || displayY >= pack.canvasHeight) {
+                if(displayX < 0 || displayX >= buffer.width || displayY < 0 || displayY >= buffer.height) {
                     continue;
                 }
                 //drawFunction(displayX, displayY, 0, 0, 0, 255);
@@ -100,42 +100,42 @@ class LayeredImage {
         if(options.source instanceof Array) {
             options.source.forEach(layer => {
                 if (layer instanceof Object) {
-                    this.layers.push(new ImageLayer(packURL, layer, options.savePixels));
+                    this.layers.push(new ImageLayer(packURL, layer));
                 } else {
-                    this.layers.push(new ImageLayer(packURL, {source: layer, applyTint: true}, options.savePixels));
+                    this.layers.push(new ImageLayer(packURL, {source: layer, applyTint: true}));
                 }
             });
         } else if (options.source instanceof Object) {
-            this.layers.push(new ImageLayer(packURL, options.source, options.savePixels));
+            this.layers.push(new ImageLayer(packURL, options.source));
         } else {
-            this.layers.push(new ImageLayer(packURL, {source: options.source, applyTint: true}, options.savePixels));
+            this.layers.push(new ImageLayer(packURL, {source: options.source, applyTint: true}));
         }
         this.thumbnail = options.thumbnail;
     }
-    calculateMask(buffer) {
-        this.mask = new Array(pack.canvasWidth*pack.canvasHeight).fill(false);
-        //Right now masks are just a binary 0 or 1 to hopefully cut down on performance cost. Could be worth it to check if 0-255 is performant, as it would allow more seamless masking.
-        //If 0-255 does not run in realtime, I'd want to calculate it when exporting the image.
-        buffer.clear();
-        this.draw(buffer, new ImageSettings());
-        buffer.loadPixels();
-        for(let x = 0; x < pack.canvasWidth; x ++) {
-            for (let y = 0; y < pack.canvasHeight; y ++) {
-                this.mask[x + y*pack.canvasHeight] = buffer.pixels[(x + y*pack.canvasHeight) * 4] > 0;
-            }
-        }
-    }
-    getMask() {
-        return this.mask;
-    }
-    draw(canvas, imageSettings) {
-        if(imageSettings.bitMask != undefined) {
-            canvas.loadPixels();
-        }
-        this.layers.forEach(layer => layer.draw(canvas, imageSettings));
-        if(imageSettings.bitMask != undefined) {
-            canvas.updatePixels();
-        }
+    // calculateMask(buffer) {
+    //     this.mask = new Array(buffer.width*buffer.height).fill(false);
+    //     //Right now masks are just a binary 0 or 1 to hopefully cut down on performance cost. Could be worth it to check if 0-255 is performant, as it would allow more seamless masking.
+    //     //If 0-255 does not run in realtime, I'd want to calculate it when exporting the image.
+    //     buffer.clear();
+    //     this.draw(buffer, new ImageSettings());
+    //     buffer.loadPixels();
+    //     for(let x = 0; x < buffer.width; x ++) {
+    //         for (let y = 0; y < buffer.height; y ++) {
+    //             this.mask[x + y*buffer.height] = buffer.pixels[(x + y*buffer.height) * 4] > 0;
+    //         }
+    //     }
+    // }
+    // getMask() {
+    //     return this.mask;
+    // }
+    draw(buffer, imageSettings) {
+        // if(imageSettings.bitMask != undefined) {
+        //     canvas.loadPixels();
+        // }
+        this.layers.forEach(layer => layer.draw(buffer, imageSettings));
+        // if(imageSettings.bitMask != undefined) {
+        //     canvas.updatePixels();
+        // }
     }
     getWidth() {
         if(this.layers != undefined) {
@@ -150,38 +150,37 @@ class LayeredImage {
         return 0;
     }
     onclick() {}
-    preload(p) {
-        this.layers.forEach(layer => layer.preload(p));
+    preload(p5) {
+        this.layers.forEach(layer => layer.preload(p5));
     }
-    setup() {
-        this.layers.forEach(layer => layer.setup(p));
+    setup(p5) {
+        this.layers.forEach(layer => layer.setup(p5));
     }
     getSketch(selected, tintColor, onclickGenerator) {
         let layeredImage = this;
-        return function(p) {
-            p.canvasSize = 200;
-            p.setup = function() {
-                let canvas = p.createCanvas(p.canvasSize, p.canvasSize);
+        return function(p5) {
+            p5.setup = function() {
+                let canvas = p5.createCanvas(200, 200);
                 canvas.addClass("extrude");
                 if(selected) {
                     canvas.addClass("selected");
                 }
                 canvas.parent('selectable_elements');
                 canvas.removeAttribute("style");
-                p.background(255);
+                p5.background(255);
             }
-            p.draw = function() {
+            p5.draw = function() {
                 layeredImage.layers.forEach(layer => {
                     if(layer.applyTint) {
-                        p.tint(tintColor);
+                        p5.tint(tintColor);
                     }
-                    let w = p.canvasSize * layeredImage.thumbnail.scale;
-                    let h = p.canvasSize * layeredImage.thumbnail.scale * (layer.img.height/layer.img.width);
-                    p.image(layer.img, p.canvasSize*0.5-w*0.5 + layeredImage.thumbnail.x * layeredImage.thumbnail.scale, p.canvasSize*0.5-w*0.5 + layeredImage.thumbnail.y * layeredImage.thumbnail.scale, w, h);
-                    p.noTint();
+                    let w = p5.width * layeredImage.thumbnail.scale;
+                    let h = p5.height * layeredImage.thumbnail.scale * (layer.img.height/layer.img.width);
+                    p5.image(layer.img, p5.width*0.5-w*0.5 + layeredImage.thumbnail.x * layeredImage.thumbnail.scale, p5.height*0.5-w*0.5 + layeredImage.thumbnail.y * layeredImage.thumbnail.scale, w, h);
+                    p5.noTint();
                 });
             }
-            p.mouseClicked = onclickGenerator(p);
+            p5.mouseClicked = onclickGenerator(p5);
         };
     }
 }

@@ -41,20 +41,6 @@ class Element extends ElementContainer {
                 return "";
             }
         };
-        this.controls.clip = {
-            allowEdit: false,
-            clipping: false,
-            exportDeepCopies: false,
-            exportOptions: ["clipping"],
-            name: "Clip",
-            icon: "<img class='icon' src='assets/mask.png'>",
-            getOnclick: function(element) {
-                return function() {
-                    element.toggleClip();
-                    updateDraw = true;
-                }
-            }
-        };
         this.parent = undefined;
         this.name = "";
         this.thumbnail = undefined;
@@ -126,15 +112,21 @@ class Element extends ElementContainer {
         }
         return this.selectedImage;
     }
-    getParentMask() {
-        let parent = this.getFirstElementParent();
-        if(parent != undefined) {
-            return parent.getMask();
-        }
-        return undefined;
+    // getParentMask() {
+    //     let parent = this.getFirstElementParent();
+    //     if(parent != undefined) {
+    //         return parent.getMask();
+    //     }
+    //     return undefined;
+    // }
+    // getMask() {
+    //     return this.getCurrentImage().getMask();
+    // }
+    needsNewBuffer() {
+        return this.controls.clip.clipping || super.needsNewBuffer();
     }
-    getMask() {
-        return this.getCurrentImage().getMask();
+    needsParentBufferSeparate() {
+        return this.controls.clip.clipping;
     }
     hasColorPalette() {
         return this.controls.colors.palette != undefined;
@@ -144,11 +136,11 @@ class Element extends ElementContainer {
             this.setColorPalette([...this.getColorPalette(), color]);
         }
     }
-    calculateMask(buffer) {//Could it be faster to have individual methods for transforming the mask? like moving all the pixels to the left etc?
-        this.applyTransforms(buffer);
-        this.getCurrentImage().calculateMask(buffer);
-        buffer.resetMatrix();
-    }
+    // calculateMask(buffer) {//Could it be faster to have individual methods for transforming the mask? like moving all the pixels to the left etc?
+    //     this.applyTransforms(buffer);
+    //     this.getCurrentImage().calculateMask(buffer);
+    //     buffer.resetMatrix();
+    // }
     createMainButton() {
         const mainButton = document.createElement("button");
         mainButton.classList.add("image");
@@ -171,25 +163,20 @@ class Element extends ElementContainer {
         this.selectedImage ++;
         this.selectedImage = this.selectedImage%this.images.length;
     }
-    draw(canvas) {
-        if(!this.isHidden()) {
-            this.applyTransforms(canvas);
-            if(this.images.length > 0) {
-                this.getCurrentImage().draw(canvas, new ImageSettings(this.getDisplayColor(), this.controls.clip.clipping ? this.getParentMask() : undefined));
-            }
-            canvas.resetMatrix();
-            super.draw(canvas);
+    draw(buffer) {
+        if(this.images.length > 0) {
+            this.getCurrentImage().draw(buffer, new ImageSettings().tint(this.getDisplayColor()));
         }
     }
-    drawBoundingBox(p) {
-        this.applyTransforms(p);
-        p.noFill();
-        p.drawingContext.setLineDash([5 + p.sin(p.frameCount/10)*2, 10 - p.sin(p.frameCount/10)*2])
-        p.strokeWeight(3);
-        p.stroke(0);
-        p.rect(0, 0, this.getCurrentImage().getWidth(), this.getCurrentImage().getHeight());
-        p.rect(0, 0, this.getCurrentImage().getWidth()+20, this.getCurrentImage().getHeight()+20);
-        p.resetMatrix();
+    drawBoundingBox(buffer) {
+        this.applyTransforms(buffer);
+        buffer.noFill();
+        buffer.drawingContext.setLineDash([5 + Math.sin(buffer.frameCount/10)*2, 10 - Math.sin(buffer.frameCount/10)*2])
+        buffer.strokeWeight(3);
+        buffer.stroke(0);
+        buffer.rect(0, 0, this.getCurrentImage().getWidth(), this.getCurrentImage().getHeight());
+        buffer.rect(0, 0, this.getCurrentImage().getWidth()+20, this.getCurrentImage().getHeight()+20);
+        buffer.resetMatrix();
     }
     exportJSON() {
         let json = super.exportJSON();
@@ -218,20 +205,20 @@ class Element extends ElementContainer {
             this.selectedImage = this.images.indexOf(layeredImage);
         }
     }
-    preload(p) {
-        this.images.forEach(image => image.preload(p));
-        super.preload(p);
+    preload(p5) {
+        this.images.forEach(image => image.preload(p5));
+        super.preload(p5);
     }
-    setup(p) {
+    setup(p5) {
         if(this.controls.colors.hasOwnProperty("copy")) {
             if(elementLookupTable.hasOwnProperty(this.controls.colors.copy)) {
                 this.controls.colors = elementLookupTable[this.controls.colors.copy].controls.colors;
             }
         }
-        this.images.forEach(image => image.setup(p));
-        this.calculateMask(p);
+        this.images.forEach(image => image.setup(p5));
+        //this.calculateMask(buffer);
         console.log("LOADING IMAGES FOR: "+this.name);
-        super.setup(p);
+        super.setup(p5);
     }
     setColorPalette(palette) {
         this.controls.colors.palette = palette;
@@ -249,19 +236,17 @@ class Element extends ElementContainer {
             const option = json[key];
             if (key == "image") {
                 this.images = [];
-                let savePixels = this.controls.clip.clipping || this.controls.clip.allowEdit;
+                //let savePixels = this.controls.clip.clipping || this.controls.clip.allowEdit;
                 let thumbnail = option.thumbnail || {scale:1,x:0,y:0};
                 if(Object.hasOwn(option, "variants")) {//Multiple variants, most objects will have this
                     option.variants.forEach(variant => {
                         let options = {source: variant};
-                        options.savePixels = savePixels;
                         options.thumbnail = thumbnail;
                         this.images.push(new LayeredImage(packURL, options));
                     });
                 }
                 if(Object.hasOwn(option, "variant")) {
                     let options = {source: option.variant};
-                    options.savePixels = savePixels;
                     options.thumbnail = thumbnail;
                     this.images.push(new LayeredImage(packURL, options));
                 }

@@ -122,6 +122,20 @@ class ElementContainer {
                     }
                     return undefined;
                 }
+            },
+            clip: {
+                allowEdit: false,
+                clipping: false,
+                exportDeepCopies: false,
+                exportOptions: ["clipping"],
+                name: "Clip",
+                icon: "<img class='icon' src='assets/mask.png'>",
+                getOnclick: function(element) {
+                    return function() {
+                        element.toggleClip();
+                        updateDraw = true;
+                    }
+                }
             }
         };
         await this.processJSON(json);
@@ -227,6 +241,14 @@ class ElementContainer {
     //     }
     //     return this.parent.getElementBefore(this);
     // }
+    needsNewBuffer() {
+        return this.children.some(child => {
+            if (child instanceof Element) {
+                return child.needsParentBufferSeparate();
+            }
+            return child.needsNewBuffer();
+        });
+    }
     addChild(element) {
         this.children.push(element);
         element.parent = this;
@@ -383,16 +405,36 @@ class ElementContainer {
         element.appendChild(mainDiv);
         return element;
     }
-    draw(p) {
+    render(buffers) {
         if(!this.isHidden()) {
-            for(let i = 0; i < this.children.length; i ++) {
-                this.children[i].draw(p);
+            if(this.needsNewBuffer()) {
+                console.log("PUSH");
+                this.applyTransforms(buffers.push());
+                console.log("DRAWING "+this.name);
+                this.draw(buffers.getCurrent());
+                buffers.getCurrent().resetMatrix();
+                this.children.forEach(child => {
+                    child.render(buffers);
+                });
+                console.log("POP");
+                buffers.pop();
+                buffers.getCurrent().resetMatrix();
+            } else {
+                this.applyTransforms(buffers.getCurrent());
+                this.draw(buffers.getCurrent());
+                buffers.getCurrent().resetMatrix();
+                this.children.forEach(child => {
+                    child.render(buffers);
+                });
             }
         }
     }
-    drawBoundingBox(p) {
+    draw(buffer) {
+
+    }
+    drawBoundingBox(buffer) {
         this.children.forEach(child => {
-            child.drawBoundingBox(p);
+            child.drawBoundingBox(buffer);
         });
     }
     exportJSON() {
@@ -558,14 +600,14 @@ class ElementContainer {
             this.refreshNode();
         }
     }
-    recalculateParentMask() {
-        let parent = this.getFirstElementParent();
-        if(parent != undefined) {
-            this.applyTransforms(maskBuffer);
-            parent.calculateMask(maskBuffer);
-            p.resetMatrix();
-        }
-    }
+    // recalculateParentMask() {
+    //     let parent = this.getFirstElementParent();
+    //     if(parent != undefined) {
+    //         this.applyTransforms(maskBuffer);
+    //         parent.calculateMask(maskBuffer);
+    //         p.resetMatrix();
+    //     }
+    // }
     refreshDisplay() {
         this.displayTransform = this.savedTransform.getCopy();
     }
