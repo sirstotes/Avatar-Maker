@@ -164,6 +164,10 @@ input[type="range"]::-moz-slider-thumb {
     }
 }
 
+canvas {
+    border: 1px solid black;
+}
+
 @media (min-aspect-ratio: 1) {
     :root {
         --border-radius: 1vh;

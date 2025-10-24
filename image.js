@@ -129,13 +129,7 @@ class LayeredImage {
     //     return this.mask;
     // }
     draw(buffer, imageSettings) {
-        // if(imageSettings.bitMask != undefined) {
-        //     canvas.loadPixels();
-        // }
         this.layers.forEach(layer => layer.draw(buffer, imageSettings));
-        // if(imageSettings.bitMask != undefined) {
-        //     canvas.updatePixels();
-        // }
     }
     getWidth() {
         if(this.layers != undefined) {

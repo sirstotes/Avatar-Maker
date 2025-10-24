@@ -417,7 +417,7 @@ class ElementContainer {
                     child.render(buffers);
                 });
                 console.log("POP");
-                buffers.pop();
+                buffers.pop(Buffers.override);
                 buffers.getCurrent().resetMatrix();
             } else {
                 this.applyTransforms(buffers.getCurrent());

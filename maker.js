@@ -442,9 +442,10 @@ async function onLoad() {
             root.preload(p);
         }
         p.setup = function() {
-            buffers = new Buffers(p, pack.canvasWidth, pack.canvasHeight);
-            buffers.getCanvas().removeAttribute("style");
-            buffers.getCanvas().parent('canvas_container');
+            let c = p.createCanvas(pack.canvasWidth, pack.canvasHeight);
+            c.removeAttribute("style");
+            c.parent('canvas_container');
+            buffers = new Buffers(p, pack.canvasWidth, pack.canvasHeight, c);
             root.setup(p);
             document.getElementsByClassName("controls_container").forEach(element => {
                 element.style = `aspect-ratio:${pack.canvasWidth}/${pack.canvasHeight};`;

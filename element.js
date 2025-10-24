@@ -165,6 +165,7 @@ class Element extends ElementContainer {
     }
     draw(buffer) {
         if(this.images.length > 0) {
+            console.log(`DRAWING ${this.name} ON ${buffer.name}`);
             this.getCurrentImage().draw(buffer, new ImageSettings().tint(this.getDisplayColor()));
         }
     }

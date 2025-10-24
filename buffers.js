@@ -1,7 +1,7 @@
 class Buffers {
-    constructor(processing, width, height) {
+    constructor(processing, width, height, canvas) {
         this.p5 = processing;
-        this.canvas = processing.createCanvas(width, height);
+        this.canvas = canvas;
         this.buffers = [];
         this.width = width;
         this.height = height;
@@ -12,6 +12,12 @@ class Buffers {
         return function(rA, gA, bA, aA, rB, gB, bB, aB) {
             return blendFunction(rA, gA, bA, aA * (aB/255), rB, gB, bB, aB);
         };
+    }
+    static discard(rA, gA, bA, aA, rB, gB, bB, aB) {
+        return [rA, gA, bA, aA];
+    }
+    static override(rA, gA, bA, aA, rB, gB, bB, aB) {
+        return [rB, gB, bB, aB];
     }
     static over(rA, gA, bA, aA, rB, gB, bB, aB) {
         if(aB > 0) {
@@ -36,7 +42,8 @@ class Buffers {
         return this.buffers[this.currentBuffer + 1];
     }
     addBuffer(canvas=undefined) {
-        let buffer = this.p5.createGraphics(this.width, this.height, canvas);
+        let buffer = this.p5.createFramebuffer(this.width, this.height, canvas);
+        buffer.name = "Buffer "+this.buffers.length;
         buffer.angleMode(p.DEGREES);
         buffer.imageMode(p.CENTER);
         buffer.rectMode(p.CENTER);
@@ -75,9 +82,12 @@ class Buffers {
             this.getCurrent().pixels[i + 2] = pixel[2];
             this.getCurrent().pixels[i + 3] = pixel[3];
         }
-        if(this.currentBuffer == 0) {
-            this.getCurrent().updatePixels();
-        }
+        this.getCurrent().updatePixels();
+        // if(this.currentBuffer == 0) {
+        //     console.log("UPDATE PIXELS");
+        //     this.getCanvas().updatePixels();
+        // }
+        //this.getCurrent().save(this.getCurrent().name);
         return this.getCurrent();
     }
 }
