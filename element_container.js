@@ -8,136 +8,11 @@ class ElementContainer {
         this.outermost = outermost;
         this.children = [];
         this.addableChildren = [];
-        this.displayTransform = new ConstrainedTransform(vec(0, 0));
-        this.savedTransform = new ConstrainedTransform();
-        this.incrementTransform = new Transform(vec(1, 1), vec(0.01, 0.01), 1);
         this.collapsible = false;
         this.collapsed = false;
+        this.options = {};
         this.shouldCreateNode = !outermost;
         this.reorderable = false;
-        this.controls = {
-            moveable: {
-                allowEdit: false,
-                translation: true,
-                rotation: true,
-                scale: true,
-                name: "Move",
-                icon: "<img class='icon' src='assets/move.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        hideControls();
-                        selectedElement = element;
-                        cancelButton(this);
-                        showMovementControls();
-                    }
-                }
-            },
-            horizontalFlip: {
-                allowEdit: false,
-                flip: 1,
-                name: "Flip",
-                icon: "<img class='icon' src='assets/horizontal.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        element.controls.horizontalFlip.flip *= -1;
-                    }
-                }
-            },
-            verticalFlip: {
-                allowEdit: false,
-                flip: 1,
-                name: "Flip",
-                icon: "<img class='icon' src='assets/vertical.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        element.controls.verticalFlip.flip *= -1;
-                    }
-                }
-            },
-            hideable: {
-                allowEdit: false,
-                hidden: false,
-                exportDeepCopies: false,
-                exportOptions: ["hidden"],
-                name: "Hide",
-                icon: "<img class='icon' src='assets/shown.png'>",
-                icon2: "<img class='icon' src='assets/hidden.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        updateDraw = true;
-                        element.toggleHidden();
-                        this.innerHTML = element.getIconForOption("hideable");
-                    }
-                },
-                getJSON: function(element) {
-                    if(!element.controls.hideable.allowEdit) {
-                        return;
-                    }
-                    return {
-                        "key":"hideable",
-                        "value": {
-                            "hidden": element.isHidden()
-                        }
-                    }
-                }
-            },
-            cloneable: {
-                allowEdit: false,
-                name: "Clone",
-                icon: "<img class='icon' src='assets/clone.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        updateDraw = true;
-                        element.clone();
-                    }
-                }
-            },
-            removeable: {
-                allowEdit: false,
-                name: "Remove",
-                icon: "<img class='icon' src='assets/delete.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        console.log(element.name);
-                        console.log("Before: ", element.getElementBefore());
-                        console.log("After: ", element.getElementAfter());
-                        this.style = "background-color:red;";
-                        this.innerHTML = "<img class='icon' src='assets/check.png' style='filter:invert(1);'>";
-                        this.onclick = function() {
-                            element.parent.removeChild(element);
-                            updateDraw = true;
-                        }
-                        if(trashedButton != undefined) {
-                            refreshTrashedButton();
-                        }
-                        trashedButton = this;
-                    }
-                },
-                getJSON: function(element) {
-                    if(element.controls.removeable.allowEdit) {
-                        return {
-                            "key":"removeable",
-                            "value": element.controls.removeable.allowEdit
-                        }
-                    }
-                    return undefined;
-                }
-            },
-            clip: {
-                allowEdit: false,
-                clipping: false,
-                exportDeepCopies: false,
-                exportOptions: ["clipping"],
-                name: "Clip",
-                icon: "<img class='icon' src='assets/mask.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        element.toggleClip();
-                        updateDraw = true;
-                    }
-                }
-            }
-        };
         await this.processJSON(json);
         if(this.name != "") {
             elementLookupTable[this.name] = this;
@@ -153,7 +28,7 @@ class ElementContainer {
         return this.parent.children.indexOf(this) < this.parent.children.length - 1;
     }
     isHidden() {
-        return this.controls.hideable.hidden;
+        return this.getPropertyValue("Hide");
     }
     async getClone(options) {
         let e = new this.constructor();
@@ -187,22 +62,22 @@ class ElementContainer {
     //     }
     //     return this.parent.getElementAfter(this);
     // }
-    getFirstElementParent() {
-        if(this.parent == undefined) {
-            return undefined;
-        }
-        if(this.parent instanceof Element) {
-            return this.parent;
-        }
-        return this.parent.getFirstElementParent();
-    }
+    // getFirstElementParent() {
+    //     if(this.parent == undefined) {
+    //         return undefined;
+    //     }
+    //     if(this.parent instanceof Element) {
+    //         return this.parent;
+    //     }
+    //     return this.parent.getFirstElementParent();
+    // }
     getGlobalTranslation() {
         let translation = vec(0, 0);
         if(this.parent != undefined) {
             translation = this.parent.getGlobalTranslation();
         }
-        translation.x += this.displayTransform.translation.x;
-        translation.y += this.displayTransform.translation.y;
+        translation.x += this.getOptionValue("Transform").translation.x;
+        translation.y += this.getOptionValue("Transform").translation.y;
         return translation;
     }
     getGlobalScale() {
@@ -210,15 +85,9 @@ class ElementContainer {
         if(this.parent != undefined) {
             scale = this.parent.getGlobalTranslation();
         }
-        scale.x *= this.displayTransform.scale.x * this.controls.horizontalFlip.flip;
-        scale.y *= this.displayTransform.scale.y * this.controls.verticalFlip.flip;
+        scale.x *= this.getOptionValue("Transform").scale.x * this.getOptionValue("Horizontal Flip");
+        scale.y *= this.getOptionValue("Transform").scale.y * this.getOptionValue("Vertical Flip");
         return scale;
-    }
-    getIconForOption(option) {
-        if(option == "hideable" && this.isHidden()) {
-            return this.controls[option].icon2;
-        }
-        return this.controls[option].icon;
     }
     // getNextElement() {
     //     if(this.parent == undefined) {
@@ -228,8 +97,8 @@ class ElementContainer {
     // }
     getOptionAmount() {
         let num = 1;
-        Object.keys(this.controls).forEach(key => {
-            if(this.controls[key].allowEdit) {
+        Object.keys(this.options).forEach(key => {
+            if(this.options[key].allowEdit) {
                 num ++;
             }
         });
@@ -271,12 +140,12 @@ class ElementContainer {
         if(this.parent != undefined) {
             this.parent.applyTransforms(p);
         }
-        this.displayTransform.apply(p);
-        p.scale(this.controls.horizontalFlip.flip, this.controls.verticalFlip.flip);
+        this.getOptionValue("Transform").apply(p);
+        p.scale(this.getOptionValue("Horizontal Flip"), this.getOptoinValue("Vertical Flip"));
     }
     async clone() {
         const options = this.exportOptions();
-        options.removeable = true;
+        options["Remove"] = true;
         if(this.name != "") {
             options.name = this.name;
         }
@@ -361,8 +230,8 @@ class ElementContainer {
         if(!this.outermost) {
             mainDiv.appendChild(this.createMainButton());
         }
-        Object.keys(this.controls).forEach(key => {
-            const option = this.controls[key];
+        Object.keys(this.options).forEach(key => {
+            const option = this.options[key];
             if(option.allowEdit) {
                 const button = document.createElement("button");
                 button.classList.add("extrude");
@@ -408,16 +277,20 @@ class ElementContainer {
     render(buffers) {
         if(!this.isHidden()) {
             if(this.needsNewBuffer()) {
-                console.log("PUSH");
+                //console.log("PUSH");
                 this.applyTransforms(buffers.push());
-                console.log("DRAWING "+this.name);
+                //console.log("DRAWING "+this.name);
                 this.draw(buffers.getCurrent());
                 buffers.getCurrent().resetMatrix();
                 this.children.forEach(child => {
                     child.render(buffers);
                 });
-                console.log("POP");
-                buffers.pop(Buffers.override);
+                //console.log("POP");
+                if(this.options.clip.clipping) {
+                    buffers.pop(Buffers.clip(Buffers.normalBlend));
+                } else {
+                    buffers.pop();
+                }
                 buffers.getCurrent().resetMatrix();
             } else {
                 this.applyTransforms(buffers.getCurrent());
@@ -448,9 +321,9 @@ class ElementContainer {
         if(Object.keys(transformJSON).length != 0) {
             json.transform = transformJSON;
         }
-        Object.keys(this.controls).forEach(key => {
-            if(this.controls[key].hasOwnProperty("getJSON")) {
-                let j = this.controls[key].getJSON(this);
+        Object.keys(this.options).forEach(key => {
+            if(this.options[key].hasOwnProperty("getJSON")) {
+                let j = this.options[key].getJSON(this);
                 if(j != undefined) {
                     json[j.key] = j.value;
                 }
@@ -467,8 +340,8 @@ class ElementContainer {
             collapsible: this.collapsible,
             collapsed: this.collapsed
         };
-        Object.keys(this.controls).forEach(key => {
-            const option = this.controls[key];
+        Object.keys(this.options).forEach(key => {
+            const option = this.options[key];
 
             options[key] = {allowEdit:option.allowEdit};
             if(option.hasOwnProperty("exportOptions")) {
@@ -524,6 +397,9 @@ class ElementContainer {
         this.children.forEach(child => {
             child.preload(p);
         });
+        this.addableChildren.forEach(child => {
+            child.preload(p);
+        });
     }
     async processJSON(json, refreshNode = false) {
         for(let i = 0; i < Object.keys(json).length; i ++) {
@@ -550,7 +426,7 @@ class ElementContainer {
                         }
                     }
                 });
-                this.displayTransform = this.savedTransform.getCopy();
+                this.getOptionValue("Transform") = this.savedTransform.getCopy();
             } if (key == "children") {
                 for(let j = 0; j < json.children.length; j ++) {
                     let child = json.children[j];
@@ -575,20 +451,20 @@ class ElementContainer {
                     await newChild.init(child, false);
                     this.addableChildren.push(newChild);
                 }
-            } else if (this.controls.hasOwnProperty(key)) {
+            } else if (this.options.hasOwnProperty(key)) {
                 if(typeof json[key] === "boolean") {
-                    this.controls[key].allowEdit = json[key];
+                    this.options[key].allowEdit = json[key];
                 } else if(json[key] instanceof Object) {
                     if(!json[key].hasOwnProperty("allowEdit")) {
-                        this.controls[key].allowEdit = true;
+                        this.options[key].allowEdit = true;
                     }
                     Object.keys(json[key]).forEach(key2 => {
-                        if(key2 == "default" && this.controls[key].hasOwnProperty("defaultKeys")) {
-                            this.controls[key].defaultKeys.forEach(defaultKey => {
-                                this.controls[key][defaultKey] = json[key][key2];;
+                        if(key2 == "default" && this.options[key].hasOwnProperty("defaultKeys")) {
+                            this.options[key].defaultKeys.forEach(defaultKey => {
+                                this.options[key][defaultKey] = json[key][key2];;
                             });
                         } else {
-                            this.controls[key][key2] = json[key][key2];
+                            this.options[key][key2] = json[key][key2];
                         }
                     });
                 }
@@ -609,7 +485,7 @@ class ElementContainer {
     //     }
     // }
     refreshDisplay() {
-        this.displayTransform = this.savedTransform.getCopy();
+        this.getOptionValue("Transform") = this.savedTransform.getCopy();
     }
     refreshChildrenNode() {
         const node = this.createChildrenNode();
@@ -644,7 +520,7 @@ class ElementContainer {
         }
     }
     saveDisplayTransform() {
-        this.savedTransform = this.displayTransform.getCopy();
+        this.savedTransform = this.getOptionValue("Transform").getCopy();
     }
     setup(p) {
         this.children.forEach(child => {
@@ -662,6 +538,6 @@ class ElementContainer {
         return this.collapsed;
     }
     toggleHidden() {
-        this.controls.hideable.hidden = !this.controls.hideable.hidden;
+        this.options.hideable.hidden = !this.options.hideable.hidden;
     }
 }

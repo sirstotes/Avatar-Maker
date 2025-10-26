@@ -129,13 +129,11 @@ function showImageSelectPopup(element) {
     container.innerHTML = "";
     //container.selectedImage = element.getCurrentImage();
     element.images.forEach(image => {
-        selectingSketches.push(new p5(image.getSketch(image == element.getCurrentImage(), element.getDisplayColor(), p => function() {
-            if(p.mouseX > 0 && p.mouseX < p.canvasSize && p.mouseY > 0 && p.mouseY < p.canvasSize) {
-                element.selectImage(image);
-                clearExtraCanvases();
-                hidePopups();
-                updateDraw = true;
-            }
+        selectingSketches.push(new p5(image.getSketch(image == element.getCurrentImage(), element.getDisplayColor(), function() {
+            element.selectImage(image);
+            clearExtraCanvases();
+            hidePopups();
+            updateDraw = true;
         })));
     });
     //refreshElementSelect();
@@ -150,12 +148,11 @@ function showElementSelectPopup(element) {
     selectedElement = element;
     if(element.addableChildren.length > 1) {
         element.addableChildren.forEach(child => {
-            selectingSketches.push(new p5(child.getCurrentImage().getSketch(false, child.getDisplayColor(), p => function() {
-                if(p.mouseX > 0 && p.mouseX < p.canvasSize && p.mouseY > 0 && p.mouseY < p.canvasSize) {//onclick
-                    clearExtraCanvases();
-                    hidePopups();
-                    child.cloneTo(element).then(clone => showImageSelectPopup(clone));
-                }
+            selectingSketches.push(new p5(child.getCurrentImage().getSketch(false, child.getDisplayColor(), function() {
+                clearExtraCanvases();
+                hidePopups();
+                updateDraw = true;
+                child.cloneTo(element).then(clone => showImageSelectPopup(clone));
             })));
         });
     } else {
@@ -445,7 +442,7 @@ async function onLoad() {
             let c = p.createCanvas(pack.canvasWidth, pack.canvasHeight);
             c.removeAttribute("style");
             c.parent('canvas_container');
-            buffers = new Buffers(p, pack.canvasWidth, pack.canvasHeight, c);
+            buffers = new Buffers(p, pack.canvasWidth, pack.canvasHeight);
             root.setup(p);
             document.getElementsByClassName("controls_container").forEach(element => {
                 element.style = `aspect-ratio:${pack.canvasWidth}/${pack.canvasHeight};`;
@@ -457,8 +454,10 @@ async function onLoad() {
                 updateDraw = false;
                 buffers.clear();
                 root.render(buffers);
+                p.clear();
+                p.image(buffers.get(0), 0, 0);
                 if(selectedElement != undefined) {
-                    if(selectedElement.getGlobalTranslation().y > buffers.getCanvas().height*0.75) {
+                    if(selectedElement.getGlobalTranslation().y > buffers.height*0.75) {
                         document.getElementsByClassName("controls").forEach(element => {
                             element.style = "";
                         });
@@ -467,7 +466,7 @@ async function onLoad() {
                             element.style = "bottom:0;";
                         });
                     }
-                    selectedElement.drawBoundingBox(buffers.getCanvas());
+                    selectedElement.drawBoundingBox(buffers.get(0));
                 }
             }
         }

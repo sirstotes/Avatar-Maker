@@ -111,7 +111,7 @@
                         }
                     },
                     {
-                        "name": "Face Decor",
+                        "name": "Face Overlays",
                         "collapsible": true,
                         "collapsed": true,
                         "addableChildren": [
@@ -339,7 +339,9 @@
                                 "bottom/13.png"
                             ]
                         },
-                        "colors": true
+                        "colors": {
+                            "mode": "shift"
+                        }
                     },
                     {
                         "name": "shirt",
@@ -385,7 +387,9 @@
                                 "top/20.png"
                             ]
                         },
-                        "colors": true
+                        "colors": {
+                            "mode": "shift"
+                        }
                     },
                     {
                         "name": "shoes",
@@ -427,7 +431,9 @@
                                 "shoes/19.png"
                             ]
                         },
-                        "colors": true
+                        "colors": {
+                            "mode": "shift"
+                        }
                     },
                     {
                         "name":"jacket",
@@ -462,7 +468,9 @@
                                 "jacket/13.png"
                             ]
                         },
-                        "colors": true
+                        "colors": {
+                            "mode": "shift"
+                        }
                     },
                     {
                         "name": "dress",
@@ -489,7 +497,9 @@
                                 "dress/5.png"
                             ]
                         },
-                        "colors": true
+                        "colors": {
+                            "mode": "shift"
+                        }
                     },
                     {
                         "name": "earring",
@@ -507,7 +517,9 @@
                                 "jewelry/small_necklace.webp"
                             ]
                         },
-                        "colors": true
+                        "colors": {
+                            "mode": "shift"
+                        }
                     },
                     {
                         "name": "bracelet",
@@ -525,7 +537,9 @@
                                 "jewelry/ankle_bracelet.png"
                             ]
                         },
-                        "colors": true
+                        "colors": {
+                            "mode": "shift"
+                        }
                     }
                 ]
             }

@@ -4,43 +4,6 @@ class Element extends ElementContainer {
     }
     async init(json = {}, base = true) {
         await super.init({}, base);
-        this.controls.colors = {
-            allowEdit: false,
-            displayTint: "white",
-            savedTint: "white",
-            customColorsAllowed: true,
-            palette: undefined,
-            exportDeepCopies: false,
-            exportOptions: ["displayTint", "savedTint", "customColorsAllowed", "palette"],
-            defaultKeys: ["displayTint", "savedTint"],
-            name: "Recolor",
-            icon: "<img class='icon' src='assets/color-picker.png'>",
-            getOnclick: function(element) {
-                return function() {
-                    hideControls();
-                    selectedElement = element;
-                    cancelButton(this);
-                    showColorPalette();
-                };
-            },
-            getJSON: function(element) {
-                if(element.getDisplayColor() != "white") {
-                    let json = {"key":"colors","value":{}};
-                    json.value.default = element.getDisplayColor();
-                    return json;
-                }
-                return undefined;
-                // if(element.hasColorPalette()) { //Not sure if I wanna save color palettes?
-                //     json.value.palette = element.getColorPalette();
-                // }
-            },
-            getStyle: function(element) {
-                if(element.getDisplayColor() != "white") {
-                    return `background-color:${element.getDisplayColor()};`;
-                }
-                return "";
-            }
-        };
         this.parent = undefined;
         this.name = "";
         this.thumbnail = undefined;
@@ -165,7 +128,7 @@ class Element extends ElementContainer {
     }
     draw(buffer) {
         if(this.images.length > 0) {
-            console.log(`DRAWING ${this.name} ON ${buffer.name}`);
+            //console.log(`DRAWING ${this.name} ON ${buffer.name}`);
             this.getCurrentImage().draw(buffer, new ImageSettings().tint(this.getDisplayColor()));
         }
     }

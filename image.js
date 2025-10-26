@@ -25,26 +25,34 @@ function getRGBA(pixels, width, x, y) {
 class ImageSettings {
     constructor() {
         this.tintColor = undefined;
+        this.mode = "tint";
     }
     tint(tintColor) {
         this.tintColor = tintColor;
         return this;
     }
+    recolorMode(mode) {
+        this.mode = mode;
+        return this;
+    }
 }
 class ImageLayer {
-    constructor(packURL, options, savePixels = false) {
+    constructor(packURL, options) {
         this.source = packURL + options.source;
-        this.applyTint = options.applyTint || true;
-        //this.savePixels = savePixels;
-        this.img = undefined; //not loaded yet
+        if(options.applyTint == undefined) {
+            this.applyTint = true;
+        } else {
+            this.applyTint = options.applyTint;
+        }
+        this.image = undefined; //not loaded yet
     }
     preload(p5) {
-        this.img = p5.loadImage(this.source);
+        this.image = p5.loadImage(this.source);
     }
     setup(p5) {
         // if(this.savePixels) {
-        //     this.img.loadPixels();
-        //     this.pixels = [...this.img.pixels];//Is it more performant to save the pixels array or load it each frame?
+        //     this.image.loadPixels();
+        //     this.pixels = [...this.image.pixels];//Is it more performant to save the pixels array or load it each frame?
         // }
     }
     draw(buffer, imageSettings) {
@@ -55,44 +63,47 @@ class ImageLayer {
         //     normalBlend(buffer.pixels, buffer.width, Math.floor(x), Math.floor(y), r, g, b, a);
         // }, imageSettings.bitMask);
         if(this.applyTint && imageSettings.tintColor != undefined) {
-            buffer.tint(imageSettings.tintColor);
-        }
-        buffer.image(this.img, 0, 0);
-        buffer.noTint();
-    }
-    drawPixels(canvas, drawFunction, bitMask) {
-    //TODO: Rather than looping over every pixel in the image, it could be faster to loop over every pixel in the bitmask
-    //It might also be a lot faster to draw the image to a buffer and then just copy the pixels over. I think this is the solution I'm gonna go for.
-        let transform = canvas.drawingContext.getTransform();
-        //const topLeft = transform.transformPoint(new DOMPointReadOnly(-this.img.width * 0.5, -this.img.height * 0.5));
-        //const topRight = transform.transformPoint(new DOMPointReadOnly(this.img.width * 0.5, -this.img.height * 0.5));
-        //const bottomLeft = transform.transformPoint(new DOMPointReadOnly(-this.img.width * 0.5, this.img.height * 0.5));
-        //const bottomRight = transform.transformPoint(new DOMPointReadOnly(this.img.width * 0.5, this.img.height * 0.5));
-        for(let x = 0; x < this.img.width; x += 10) {//TODO: should try not to render every pixel, that's too slow
-            for(let y = 0; y < this.img.height; y += 10) {
-                //let displayX = x;
-                //let displayY = y;
-
-                //Transform point according to image transform
-
-                //This solution is not correct for rotations and leaves gaps
-                //let displayX = canvas.map(x, 0, this.img.width, topLeft.x, bottomRight.x);
-                //let displayY = canvas.map(y, 0, this.img.height, topLeft.y, bottomRight.y);
-
-                //This solution is correct but too slow
-                let f = transform.transformPoint(new DOMPointReadOnly(x - this.img.width * 0.5, y - this.img.height * 0.5));
-                let displayX = f.x;
-                let displayY = f.y;
-                
-                if(displayX < 0 || displayX >= buffer.width || displayY < 0 || displayY >= buffer.height) {
-                    continue;
-                }
-                //drawFunction(displayX, displayY, 0, 0, 0, 255);
-                let n = (x + y*this.img.width) * 4;
-                drawFunction(displayX, displayY, this.pixels[n], this.pixels[n + 1], this.pixels[n + 2], this.pixels[n + 3]);
+            if(imageSettings.mode == "tint") {
+                buffer.tint(imageSettings.tintColor);
+            } else {
+                drawingContext.filter = `hue-rotate(${buffer.hue(imageSettings.tintColor)}deg)saturate(${buffer.saturation(imageSettings.tintColor)})brightness(${buffer.brightness(imageSettings.tintColor)}%)`; 
             }
         }
+        buffer.image(this.image, 0, 0);
+        buffer.noTint();
     }
+    // drawPixels(canvas, drawFunction, bitMask) {
+    // //It might also be a lot faster to draw the image to a buffer and then just copy the pixels over. I think this is the solution I'm gonna go for.
+    //     let transform = canvas.drawingContext.getTransform();
+    //     //const topLeft = transform.transformPoint(new DOMPointReadOnly(-this.image.width * 0.5, -this.image.height * 0.5));
+    //     //const topRight = transform.transformPoint(new DOMPointReadOnly(this.image.width * 0.5, -this.image.height * 0.5));
+    //     //const bottomLeft = transform.transformPoint(new DOMPointReadOnly(-this.image.width * 0.5, this.image.height * 0.5));
+    //     //const bottomRight = transform.transformPoint(new DOMPointReadOnly(this.image.width * 0.5, this.image.height * 0.5));
+    //     for(let x = 0; x < this.image.width; x += 10) {//TODO: should try not to render every pixel, that's too slow
+    //         for(let y = 0; y < this.image.height; y += 10) {
+    //             //let displayX = x;
+    //             //let displayY = y;
+
+    //             //Transform point according to image transform
+
+    //             //This solution is not correct for rotations and leaves gaps
+    //             //let displayX = canvas.map(x, 0, this.image.width, topLeft.x, bottomRight.x);
+    //             //let displayY = canvas.map(y, 0, this.image.height, topLeft.y, bottomRight.y);
+
+    //             //This solution is correct but too slow
+    //             let f = transform.transformPoint(new DOMPointReadOnly(x - this.image.width * 0.5, y - this.image.height * 0.5));
+    //             let displayX = f.x;
+    //             let displayY = f.y;
+                
+    //             if(displayX < 0 || displayX >= buffer.width || displayY < 0 || displayY >= buffer.height) {
+    //                 continue;
+    //             }
+    //             //drawFunction(displayX, displayY, 0, 0, 0, 255);
+    //             let n = (x + y*this.image.width) * 4;
+    //             drawFunction(displayX, displayY, this.pixels[n], this.pixels[n + 1], this.pixels[n + 2], this.pixels[n + 3]);
+    //         }
+    //     }
+    // }
 }
 class LayeredImage {
     constructor(packURL, options) {
@@ -133,13 +144,13 @@ class LayeredImage {
     }
     getWidth() {
         if(this.layers != undefined) {
-            return this.layers[0].img.width;
+            return this.layers[0].image.width;
         }
         return 0;
     }
     getHeight() {
         if(this.layers != undefined) {
-            return this.layers[0].img.height;
+            return this.layers[0].image.height;
         }
         return 0;
     }
@@ -150,7 +161,7 @@ class LayeredImage {
     setup(p5) {
         this.layers.forEach(layer => layer.setup(p5));
     }
-    getSketch(selected, tintColor, onclickGenerator) {
+    getSketch(selected, tintColor, onclick) {
         let layeredImage = this;
         return function(p5) {
             p5.setup = function() {
@@ -161,20 +172,21 @@ class LayeredImage {
                 }
                 canvas.parent('selectable_elements');
                 canvas.removeAttribute("style");
-                p5.background(255);
+                canvas.canvas.addEventListener("click", onclick);
+                p5.noLoop();
             }
             p5.draw = function() {
+                p5.background(255);
                 layeredImage.layers.forEach(layer => {
                     if(layer.applyTint) {
                         p5.tint(tintColor);
                     }
                     let w = p5.width * layeredImage.thumbnail.scale;
-                    let h = p5.height * layeredImage.thumbnail.scale * (layer.img.height/layer.img.width);
-                    p5.image(layer.img, p5.width*0.5-w*0.5 + layeredImage.thumbnail.x * layeredImage.thumbnail.scale, p5.height*0.5-w*0.5 + layeredImage.thumbnail.y * layeredImage.thumbnail.scale, w, h);
+                    let h = p5.height * layeredImage.thumbnail.scale * (layer.image.height/layer.image.width);
+                    p5.image(layer.image, p5.width*0.5-w*0.5 + layeredImage.thumbnail.x * layeredImage.thumbnail.scale, p5.height*0.5-w*0.5 + layeredImage.thumbnail.y * layeredImage.thumbnail.scale, w, h);
                     p5.noTint();
                 });
             }
-            p5.mouseClicked = onclickGenerator(p5);
         };
     }
 }
