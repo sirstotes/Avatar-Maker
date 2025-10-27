@@ -16,9 +16,9 @@
                     {
                         "name": "hair",
                         "thumbnail": "icons/hair.png",
-                        "hideable": true,
+                        "hide": true,
                         "image": {
-                            "thumbnail": {"x":0, "y":20, "scale":2},
+                            "thumbnail": {"x":0, "y":300, "scale":0.75},
                             "variants": [
                                 ["hair/1b.webp", "hair/1a.webp"],
                                 ["hair/2b.webp", "hair/2a.webp"],
@@ -40,7 +40,7 @@
                         "collapsible": true,
                         "collapsed": true,
                         "image": {
-                            "thumbnail": {"x":0, "y":-35, "scale":2.5},
+                            "thumbnail": {"x":0, "y":50, "scale":0.5},
                             "variants": [
                                 ["body/base_body_fem.png", {"source":"underwear/bottom2.webp", "applyTint":false, "afterChildren":true}, {"source":"underwear/top2.webp", "applyTint":false, "afterChildren":true}],
                                 ["body/base_body_fem.png", {"source":"underwear/bottom3.webp", "applyTint":true, "afterChildren":true}, {"source":"underwear/top3.webp", "applyTint":true, "afterChildren":true}],
@@ -49,8 +49,8 @@
                             ]
                         },
                         "colors": {
-                            "default": "random",
-                            "palette": ["#fbeadf", "#e7bbaa", "#deaa8c", "#cc9475", "#a56b50", "#80513b", "#53301f", "rgb(68, 34, 19)"]
+                            "palette": ["#fbeadf", "#e7bbaa", "#deaa8c", "#cc9475", "#a56b50", "#80513b", "#53301f", "rgb(68, 34, 19)"],
+                            "default": "random"
                         },
                         "children": [
                             {
@@ -94,7 +94,7 @@
                             }
                         },
                         "image": {
-                            "thumbnail": {"x":15, "y":30, "scale":9},
+                            "thumbnail": {"x":65, "y":320, "scale":3},
                             "variants": [
                                 "ears/1.png",
                                 "ears/2.png",
@@ -118,7 +118,7 @@
                             {
                                 "name": "face",
                                 "image": {
-                                    "thumbnail": {"x":0, "y":35, "scale":5},
+                                    "thumbnail": {"x":0, "y":300, "scale":0.75},
                                     "variants": [
                                         "face_decor/1.png",
                                         "face_decor/2.png",
@@ -163,7 +163,7 @@
                             }
                         },
                         "image": {
-                            "thumbnail": {"x":0, "y":30, "scale":9},
+                            "thumbnail": {"x":25, "y":315, "scale":4},
                             "variants": [
                                 [{"source":"base_white_eyes.png", "applyTint":false}, "pupils/1.png"],
                                 [{"source":"base_white_eyes.png", "applyTint":false}, "pupils/2.png"],
@@ -173,8 +173,8 @@
                             ]
                         },
                         "colors": {
-                            "default": "random",
-                            "palette": ["#a0c0c9", "#2fcdf3", "#61c058", "#b06d2b", "#593d20"]
+                            "palette": ["#a0c0c9", "#2fcdf3", "#61c058", "#b06d2b", "#593d20"],
+                            "default": "random"
                         },
                         "children": [
                             {
@@ -193,7 +193,7 @@
                             },
                             {
                                 "name": "eyelashes",
-                                "hideable": true,
+                                "hide": true,
                                 "thumbnail": "icons/eyelash.png",
                                 "image": {
                                     "thumbnail": {"x":0, "y":30, "scale":9},
@@ -216,7 +216,7 @@
                             }
                         },
                         "image": {
-                            "thumbnail": {"x":0, "y":30, "scale":9},
+                            "thumbnail": {"x":0, "y":300, "scale":3},
                             "variants": ["nose/1.png", "nose/2.png", "nose/3.png", "nose/4.png", "nose/5.png", "nose/6.png"]
                         }
                     },
@@ -234,7 +234,7 @@
                             }
                         },
                         "image": {
-                            "thumbnail": {"x":0, "y":20, "scale":9},
+                            "thumbnail": {"x":0, "y":300, "scale":2},
                             "variants": [
                                 "mouth/1.png",
                                 "mouth/2.png",
@@ -256,10 +256,10 @@
                     {
                         "name": "hair_front",
                         "thumbnail": "icons/hair.png",
-                        "hideable": true,
+                        "hide": true,
                         "selectedImage": {"copy":"hair"},
                         "image": {
-                            "thumbnail": {"x":0, "y":35, "scale":5},
+                            "thumbnail": {"x":0, "y":300, "scale":0.75},
                             "variants": [
                                 "hair/1a.webp",
                                 "hair/2a.webp",
@@ -280,9 +280,9 @@
                     {
                         "name": "bangs",
                         "thumbnail": "icons/bangs.png",
-                        "hideable": true,
+                        "hide": true,
                         "image": {
-                            "thumbnail": {"x":0, "y":35, "scale":5},
+                            "thumbnail": {"x":0, "y":300, "scale":0.75},
                             "variants": [
                                 "bangs/1.webp",
                                 "bangs/2.webp",
@@ -304,211 +304,281 @@
             },
             {
                 "name": "Clothing",
-                "hideable": true,
+                "hide": true,
                 "collapsible": true,
                 "reorderable": true,
                 "addableChildren": [
                     {
                         "name": "pants",
                         "thumbnail": "icons/pants.png",
-                        "hideable": true,
+                        "hide": true,
                         "cloneable": true,
                         "selectedImage": 4,
                         "image": {
-                            "thumbnail": {"x":0, "y":-75, "scale":2},
+                            "thumbnail": {"x":0, "y":-100, "scale":0.5},
                             "variants": [
-                                "bottom/1.webp",
                                 "bottom/2.webp",
                                 "bottom/3.webp",
                                 "bottom/4.webp",
                                 "bottom/5.webp",
                                 "bottom/6.webp",
-                                "bottom/7.webp",
                                 "bottom/1.png",
                                 "bottom/2.png",
-                                "bottom/3.png",
                                 "bottom/4.png",
                                 "bottom/5.png",
                                 "bottom/6.png",
-                                "bottom/7.png",
                                 "bottom/8.png",
                                 "bottom/9.png",
                                 "bottom/10.png",
-                                "bottom/11.png",
                                 "bottom/12.png",
                                 "bottom/13.png"
                             ]
                         },
                         "colors": {
-                            "mode": "shift"
+                            "mode": "shift",
+                            "default": {"h": 0, "s": 100, "l": 100}
                         }
+                    },
+                    {
+                        "name": "pants2",
+                        "thumbnail": "icons/pants.png",
+                        "hide": true,
+                        "cloneable": true,
+                        "selectedImage": 4,
+                        "image": {
+                            "thumbnail": {"x":0, "y":-100, "scale":0.5},
+                            "variants": [
+                                "bottom/1.webp",
+                                "bottom/3.png",
+                                "bottom/7.png",
+                                "bottom/7.webp",
+                                "bottom/11.png"
+                            ]
+                        },
+                        "colors": true
                     },
                     {
                         "name": "shirt",
                         "thumbnail": "icons/shirt.png",
-                        "hideable": true,
+                        "hide": true,
                         "cloneable": true,
-                        "selectedImage": 7,
+                        "selectedImage": 4,
                         "image": {
-                            "thumbnail": {"x":0, "y":-20, "scale":2},
+                            "thumbnail": {"x":0, "y":100, "scale":0.5},
                             "variants": [
-                                "top/1.webp",
                                 "top/2.webp",
-                                "top/3.webp",
-                                "top/4.webp",
                                 "top/5.webp",
                                 "top/6.webp",
                                 "top/7.webp",
                                 "top/8.webp",
-                                "top/9.webp",
                                 "top/10.webp",
                                 "top/11.webp",
-                                "top/12.webp",
                                 "top/13.webp",
-                                "top/1.png",
                                 "top/2.png",
                                 "top/3.png",
                                 "top/4.png",
                                 "top/5.png",
-                                "top/6.png",
                                 "top/7.png",
-                                "top/8.png",
                                 "top/9.png",
-                                "top/10.png",
                                 "top/11.png",
-                                "top/12.png",
                                 "top/13.png",
                                 "top/14.png",
-                                "top/15.png",
                                 "top/16.png",
-                                "top/17.png",
-                                "top/18.png",
-                                "top/19.png",
                                 "top/20.png"
                             ]
                         },
                         "colors": {
-                            "mode": "shift"
+                            "mode": "shift",
+                            "default": {"h": 0, "s": 100, "l": 100}
                         }
+                    },
+                    {
+                        "name": "shirt2",
+                        "thumbnail": "icons/shirt.png",
+                        "hide": true,
+                        "cloneable": true,
+                        "selectedImage": 0,
+                        "image": {
+                            "thumbnail": {"x":0, "y":100, "scale":0.5},
+                            "variants": [
+                                "top/1.png",
+                                "top/1.webp",
+                                "top/3.webp",
+                                "top/4.webp",
+                                "top/6.png",
+                                "top/8.png",
+                                "top/9.webp",
+                                "top/10.png",
+                                "top/12.png",
+                                "top/12.webp",
+                                "top/15.png",
+                                "top/17.png",
+                                "top/18.png",
+                                "top/19.png"
+                            ]
+                        },
+                        "colors": true
                     },
                     {
                         "name": "shoes",
                         "thumbnail": "icons/shoes.png",
-                        "hideable": true,
+                        "hide": true,
                         "cloneable": true,
-                        "selectedImage": 6,
+                        "selectedImage": 4,
                         "image": {
-                            "thumbnail": {"x":0, "y":-150, "scale":2.5},
+                            "thumbnail": {"x":0, "y":-400, "scale":0.8},
                             "variants": [
-                                "shoes/1.webp",
                                 "shoes/2.webp",
                                 "shoes/3.webp",
-                                "shoes/4.webp",
-                                "shoes/5.webp",
                                 "shoes/6.webp",
-                                "shoes/7.webp",
                                 "shoes/8.webp",
                                 "shoes/9.webp",
                                 "shoes/10.webp",
-                                "shoes/1.png",
-                                "shoes/2.png",
-                                "shoes/3.png",
-                                "shoes/4.png",
-                                "shoes/5.png",
-                                "shoes/6.png",
                                 "shoes/7.png",
                                 "shoes/8.png",
                                 "shoes/9.png",
-                                "shoes/10.png",
                                 "shoes/11.png",
-                                "shoes/12.png",
                                 "shoes/13.png",
-                                "shoes/14.png",
                                 "shoes/15.png",
-                                "shoes/16.png",
-                                "shoes/17.png",
-                                "shoes/18.png",
-                                "shoes/19.png"
+                                "shoes/18.png"
                             ]
                         },
                         "colors": {
-                            "mode": "shift"
+                            "mode": "shift",
+                            "default": {"h": 0, "s": 100, "l": 100}
                         }
+                    },
+                    {
+                        "name": "shoes2",
+                        "thumbnail": "icons/shoes.png",
+                        "hide": true,
+                        "cloneable": true,
+                        "selectedImage": 6,
+                        "image": {
+                            "thumbnail": {"x":0, "y":-400, "scale":0.8},
+                            "variants": [
+                                "shoes/1.png",
+                                "shoes/1.webp",
+                                "shoes/2.png",
+                                "shoes/3.png",
+                                "shoes/4.png",
+                                "shoes/4.webp",
+                                "shoes/5.png",
+                                "shoes/5.webp",
+                                "shoes/6.png",
+                                "shoes/7.webp",
+                                "shoes/10.png",
+                                "shoes/12.png",
+                                "shoes/14.png",
+                                "shoes/16.png",
+                                "shoes/17.png",
+                                "shoes/19.png"
+                            ]
+                        },
+                        "colors": true
                     },
                     {
                         "name":"jacket",
                         "thumbnail": "icons/jacket.png",
-                        "hideable": true,
+                        "hide": true,
                         "cloneable": true,
                         "image": {
-                            "thumbnail": {"x":0, "y":-20, "scale":2},
+                            "thumbnail": {"x":0, "y":100, "scale":0.5},
                             "variants": [
                                 "jacket/1.webp",
-                                "jacket/2.webp",
-                                "jacket/3.webp",
                                 "jacket/4.webp",
                                 "jacket/5.webp",
-                                "jacket/6.webp",
-                                "jacket/7.webp",
-                                "jacket/8.webp",
                                 "jacket/9.webp",
                                 "jacket/10.webp",
-                                "jacket/1.png",
                                 "jacket/2.png",
                                 "jacket/3.png",
                                 "jacket/4.png",
                                 "jacket/5.png",
-                                "jacket/6.png",
-                                "jacket/7.png",
                                 "jacket/8.png",
                                 "jacket/9.png",
                                 "jacket/10.png",
                                 "jacket/11.png",
-                                "jacket/12.png",
                                 "jacket/13.png"
                             ]
                         },
                         "colors": {
-                            "mode": "shift"
+                            "mode": "shift",
+                            "default": {"h": 0, "s": 100, "l": 100}
                         }
+                    },
+                    {
+                        "name":"jacket2",
+                        "thumbnail": "icons/jacket.png",
+                        "hide": true,
+                        "cloneable": true,
+                        "image": {
+                            "thumbnail": {"x":0, "y":100, "scale":0.5},
+                            "variants": [
+                                "jacket/1.png",
+                                "jacket/2.webp",
+                                "jacket/3.webp",
+                                "jacket/6.png",
+                                "jacket/6.webp",
+                                "jacket/7.png",
+                                "jacket/7.webp",
+                                "jacket/8.webp",
+                                "jacket/12.png"
+                            ]
+                        },
+                        "colors": true
                     },
                     {
                         "name": "dress",
                         "thumbnail": "icons/dress.png",
-                        "hideable": true,
+                        "hide": true,
                         "cloneable": true,
-                        "selectedImage": 7,
+                        "selectedImage": 0,
                         "image": {
-                            "thumbnail": {"x":0, "y":-50, "scale":1.5},
+                            "thumbnail": {"x":0, "y":50, "scale":0.5},
                             "variants": [
                                 "dress/1.webp",
-                                "dress/2.webp",
-                                "dress/3.webp",
                                 "dress/4.webp",
                                 "dress/5.webp",
                                 "dress/6.webp",
                                 "dress/7.webp",
-                                "dress/8.webp",
                                 "dress/9.webp",
-                                "dress/10.webp",
-                                "dress/1.png",
-                                "dress/2.png",
-                                "dress/3.png",
-                                "dress/5.png"
+                                "dress/10.webp"
                             ]
                         },
                         "colors": {
-                            "mode": "shift"
+                            "mode": "shift",
+                            "default": {"h": 0, "s": 100, "l": 100}
                         }
+                    },
+                    {
+                        "name": "dress2",
+                        "thumbnail": "icons/dress.png",
+                        "hide": true,
+                        "cloneable": true,
+                        "selectedImage": 0,
+                        "image": {
+                            "thumbnail": {"x":0, "y":50, "scale":0.5},
+                            "variants": [
+                                "dress/1.png",
+                                "dress/2.png",
+                                "dress/2.webp",
+                                "dress/3.png",
+                                "dress/3b.png",
+                                "dress/3.webp",
+                                "dress/5.png",
+                                "dress/8.webp"
+                            ]
+                        },
+                        "colors": true
                     },
                     {
                         "name": "earring",
                         "thumbnail": "icons/earrings.png",
-                        "hideable": true,
+                        "hide": true,
                         "cloneable": true,
                         "selectedImage": 1,
                         "image": {
-                            "thumbnail": {"x":0, "y":16, "scale":4},
+                            "thumbnail": {"x":0, "y":275, "scale":1},
                             "variants": [
                                 "jewelry/earrings.webp",
                                 "jewelry/long_necklace.webp",
@@ -518,18 +588,19 @@
                             ]
                         },
                         "colors": {
-                            "mode": "shift"
+                            "mode": "shift",
+                            "default": {"h": 0, "s": 100, "l": 100}
                         }
                     },
                     {
                         "name": "bracelet",
                         "thumbnail": "icons/bracelet.png",
-                        "hideable": true,
+                        "hide": true,
                         "cloneable": true,
                         "horizontalFlip": true,
-                        "selectedImage": 2,
+                        "selectedImage": 0,
                         "image": {
-                            "thumbnail": {"x":35, "y":-52, "scale":9},
+                            "thumbnail": {"x":130, "y":0, "scale":1.5},
                             "variants": [
                                 "jewelry/bracelet.png",
                                 "jewelry/ring.png",
@@ -538,7 +609,8 @@
                             ]
                         },
                         "colors": {
-                            "mode": "shift"
+                            "mode": "shift",
+                            "default": {"h": 0, "s": 100, "l": 100}
                         }
                     }
                 ]

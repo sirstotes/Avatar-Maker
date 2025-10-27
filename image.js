@@ -50,27 +50,22 @@ class ImageLayer {
         this.image = p5.loadImage(this.source);
     }
     setup(p5) {
-        // if(this.savePixels) {
-        //     this.image.loadPixels();
-        //     this.pixels = [...this.image.pixels];//Is it more performant to save the pixels array or load it each frame?
-        // }
     }
     draw(buffer, imageSettings) {
-        // this.drawPixels(buffer, function(x, y, r, g, b, a) {
-        //     if(!imageSettings.bitMask[Math.floor(x) + Math.floor(y) * buffer.width]) {
-        //         return;
-        //     }
-        //     normalBlend(buffer.pixels, buffer.width, Math.floor(x), Math.floor(y), r, g, b, a);
-        // }, imageSettings.bitMask);
         if(this.applyTint && imageSettings.tintColor != undefined) {
+            buffer.push();
             if(imageSettings.mode == "tint") {
                 buffer.tint(imageSettings.tintColor);
-            } else {
-                drawingContext.filter = `hue-rotate(${buffer.hue(imageSettings.tintColor)}deg)saturate(${buffer.saturation(imageSettings.tintColor)})brightness(${buffer.brightness(imageSettings.tintColor)}%)`; 
+            } else if(imageSettings.mode == "shift") {
+                buffer.drawingContext.filter = `hue-rotate(${imageSettings.tintColor.h}deg)saturate(${imageSettings.tintColor.s}%)brightness(${imageSettings.tintColor.l}%)`; 
+                //buffer.drawingContext.filter = `hue-rotate(0deg)saturate(100%)brightness(100%)`; 
             }
         }
         buffer.image(this.image, 0, 0);
         buffer.noTint();
+        if(this.applyTint && imageSettings.tintColor != undefined) {
+            buffer.pop();
+        }
     }
     // drawPixels(canvas, drawFunction, bitMask) {
     // //It might also be a lot faster to draw the image to a buffer and then just copy the pixels over. I think this is the solution I'm gonna go for.
@@ -123,22 +118,6 @@ class LayeredImage {
         }
         this.thumbnail = options.thumbnail;
     }
-    // calculateMask(buffer) {
-    //     this.mask = new Array(buffer.width*buffer.height).fill(false);
-    //     //Right now masks are just a binary 0 or 1 to hopefully cut down on performance cost. Could be worth it to check if 0-255 is performant, as it would allow more seamless masking.
-    //     //If 0-255 does not run in realtime, I'd want to calculate it when exporting the image.
-    //     buffer.clear();
-    //     this.draw(buffer, new ImageSettings());
-    //     buffer.loadPixels();
-    //     for(let x = 0; x < buffer.width; x ++) {
-    //         for (let y = 0; y < buffer.height; y ++) {
-    //             this.mask[x + y*buffer.height] = buffer.pixels[(x + y*buffer.height) * 4] > 0;
-    //         }
-    //     }
-    // }
-    // getMask() {
-    //     return this.mask;
-    // }
     draw(buffer, imageSettings) {
         this.layers.forEach(layer => layer.draw(buffer, imageSettings));
     }
@@ -161,7 +140,7 @@ class LayeredImage {
     setup(p5) {
         this.layers.forEach(layer => layer.setup(p5));
     }
-    getSketch(selected, tintColor, onclick) {
+    getSketch(selected, imageSettings, onclick) {
         let layeredImage = this;
         return function(p5) {
             p5.setup = function() {
@@ -173,18 +152,20 @@ class LayeredImage {
                 canvas.parent('selectable_elements');
                 canvas.removeAttribute("style");
                 canvas.canvas.addEventListener("click", onclick);
+                p5.imageMode(p5.CENTER);
                 p5.noLoop();
             }
             p5.draw = function() {
                 p5.background(255);
                 layeredImage.layers.forEach(layer => {
-                    if(layer.applyTint) {
-                        p5.tint(tintColor);
-                    }
+                    p5.push();
                     let w = p5.width * layeredImage.thumbnail.scale;
-                    let h = p5.height * layeredImage.thumbnail.scale * (layer.image.height/layer.image.width);
-                    p5.image(layer.image, p5.width*0.5-w*0.5 + layeredImage.thumbnail.x * layeredImage.thumbnail.scale, p5.height*0.5-w*0.5 + layeredImage.thumbnail.y * layeredImage.thumbnail.scale, w, h);
-                    p5.noTint();
+                    //p5.translate(p5.width*0.5-w*0.5 + layeredImage.thumbnail.x * layeredImage.thumbnail.scale, p5.height*0.5-w*0.5 + layeredImage.thumbnail.y * layeredImage.thumbnail.scale);
+                    p5.translate(p5.width*0.5, p5.height*0.5);
+                    p5.scale(layeredImage.thumbnail.scale, layeredImage.thumbnail.scale);
+                    p5.translate(layeredImage.thumbnail.x, layeredImage.thumbnail.y);
+                    layer.draw(p5, imageSettings);
+                    p5.pop();
                 });
             }
         };

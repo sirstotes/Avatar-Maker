@@ -10,7 +10,58 @@ class ElementContainer {
         this.addableChildren = [];
         this.collapsible = false;
         this.collapsed = false;
-        this.options = {};
+        this.optionSources = {};
+        this.options = {
+            transform: new Option(this, "transform", "assets/move.png")
+                .property("value", new ConstrainedTransform(vec(0, 0)), {split: true})
+                .property("increment", new Transform(vec(1, 1), vec(0.01, 0.01), 1))
+                .property("allowTranslation", true)
+                .property("allowRotation", true)
+                .property("allowScale", true)
+                .click(function(element, button) {
+                    hideControls();
+                    selectedElement = element;
+                    cancelButton(button);
+                    showMovementControls();
+                }),
+            horizontalFlip: new Option(this, "horizontalFlip", "assets/horizontal.png")
+                .property("value", 1)
+                .click(function(element, button) {
+                    element.set("horizontalFlip", element.get("horizontalFlip") * -1);
+                }),
+            verticalFlip: new Option(this, "verticalFlip", "assets/vertical.png")
+                .property("value", 1)
+                .click(function(element, button) {
+                    element.set("verticalFlip", element.get("verticalFlip") * -1);
+                }),
+            hide: new Option(this, "hide", "assets/shown.png")
+                .property("value", false)
+                .addIcon("value", true, "assets/hidden.png")
+                .click(function(element, button) {
+                    updateDraw = true;
+                    element.set("hide", !element.get("hide"));
+                    button.innerHTML = element.getOption("hide").getIcon();
+                }),
+            cloneable: new Option(this, "cloneable", "assets/clone.png")
+                .click(function(element, button) {
+                    updateDraw = true;
+                    element.clone();
+                }),
+            removeable: new Option(this, "removeable", "assets/delete.png")
+                .requireConfirmation()
+                .click(function(element, button) {
+                    element.parent.removeChild(element);
+                    updateDraw = true;
+                }),
+            clip: new Option(this, "clip", "assets/mask.png")
+                .property("value", false)
+                .click(function(element, button) {
+                    return function() {
+                        element.toggleClip();
+                        updateDraw = true;
+                    }
+                })
+        };
         this.shouldCreateNode = !outermost;
         this.reorderable = false;
         await this.processJSON(json);
@@ -28,7 +79,13 @@ class ElementContainer {
         return this.parent.children.indexOf(this) < this.parent.children.length - 1;
     }
     isHidden() {
-        return this.getPropertyValue("Hide");
+        return this.get("hide");
+    }
+    get(option, property=undefined) {
+        return this.options[option].getValue(property);
+    }
+    getOption(option) {
+        return this.options[option];
     }
     async getClone(options) {
         let e = new this.constructor();
@@ -76,8 +133,8 @@ class ElementContainer {
         if(this.parent != undefined) {
             translation = this.parent.getGlobalTranslation();
         }
-        translation.x += this.getOptionValue("Transform").translation.x;
-        translation.y += this.getOptionValue("Transform").translation.y;
+        translation.x += this.get("transform").translation.x;
+        translation.y += this.get("transform").translation.y;
         return translation;
     }
     getGlobalScale() {
@@ -85,8 +142,8 @@ class ElementContainer {
         if(this.parent != undefined) {
             scale = this.parent.getGlobalTranslation();
         }
-        scale.x *= this.getOptionValue("Transform").scale.x * this.getOptionValue("Horizontal Flip");
-        scale.y *= this.getOptionValue("Transform").scale.y * this.getOptionValue("Vertical Flip");
+        scale.x *= this.get("transform").scale.x * this.get("Horizontal Flip");
+        scale.y *= this.get("transform").scale.y * this.get("Vertical Flip");
         return scale;
     }
     // getNextElement() {
@@ -140,12 +197,12 @@ class ElementContainer {
         if(this.parent != undefined) {
             this.parent.applyTransforms(p);
         }
-        this.getOptionValue("Transform").apply(p);
-        p.scale(this.getOptionValue("Horizontal Flip"), this.getOptoinValue("Vertical Flip"));
+        this.get("transform").apply(p);
+        p.scale(this.get("horizontalFlip"), this.get("verticalFlip"));
     }
     async clone() {
         const options = this.exportOptions();
-        options["Remove"] = true;
+        options.removeable = true;
         if(this.name != "") {
             options.name = this.name;
         }
@@ -235,16 +292,12 @@ class ElementContainer {
             if(option.allowEdit) {
                 const button = document.createElement("button");
                 button.classList.add("extrude");
-                if(option.hasOwnProperty("getStyle")) {
-                    button.getStyle = option.getStyle;
-                    button.style = option.getStyle(this);
-                }
-                button.innerHTML = this.getIconForOption(key);
-                button.defaultInnerHTML = option.icon;
-                if(option.getOnclick != undefined) {
-                    button.onclick = option.getOnclick(this);
-                    button.defaultOnclick = option.getOnclick(this);
-                }
+                button.getStyle = option.getStyle;
+                button.style = option.getStyle(this);
+                button.innerHTML = option.getIcon();
+                button.defaultInnerHTML = option.getIcon();
+                button.onclick = option.getOnclick(thisInstance, button);
+                button.defaultOnclick = option.getOnclick(thisInstance, button);
                 mainDiv.appendChild(button);
             }
         });
@@ -277,16 +330,13 @@ class ElementContainer {
     render(buffers) {
         if(!this.isHidden()) {
             if(this.needsNewBuffer()) {
-                //console.log("PUSH");
                 this.applyTransforms(buffers.push());
-                //console.log("DRAWING "+this.name);
                 this.draw(buffers.getCurrent());
                 buffers.getCurrent().resetMatrix();
                 this.children.forEach(child => {
                     child.render(buffers);
                 });
-                //console.log("POP");
-                if(this.options.clip.clipping) {
+                if(this.get("clip", "clipping")) {
                     buffers.pop(Buffers.clip(Buffers.normalBlend));
                 } else {
                     buffers.pop();
@@ -301,6 +351,9 @@ class ElementContainer {
                 });
             }
         }
+    }
+    replaceOptionReference(name, newReference) {
+        this.options[name] = newReference;
     }
     draw(buffer) {
 
@@ -317,15 +370,15 @@ class ElementContainer {
         if(!this.base) {
             json.parentName = this.parent.name;
         }
-        let transformJSON = this.savedTransform.getJSON();
-        if(Object.keys(transformJSON).length != 0) {
+        let transformJSON = this.get("transform").getJSON();
+        if(Object.keys(transformJSON).length != 0) {//Don't save it if it's just default.
             json.transform = transformJSON;
         }
         Object.keys(this.options).forEach(key => {
-            if(this.options[key].hasOwnProperty("getJSON")) {
-                let j = this.options[key].getJSON(this);
+            if(!this.options[key].isDefault()) {
+                let j = this.options[key].getJSON();
                 if(j != undefined) {
-                    json[j.key] = j.value;
+                    json[key] = j;
                 }
             }
         });
@@ -341,22 +394,10 @@ class ElementContainer {
             collapsed: this.collapsed
         };
         Object.keys(this.options).forEach(key => {
-            const option = this.options[key];
-
-            options[key] = {allowEdit:option.allowEdit};
-            if(option.hasOwnProperty("exportOptions")) {
-                for(let i = 0; i < option.exportOptions.length; i ++) {
-                    if(option.exportDeepCopies == true) {
-                        if(option[option.exportOptions[i]] instanceof ConstrainedTransform) {
-                            options[key][option.exportOptions[i]] = option[option.exportOptions[i]].getCopy();
-                        } else {
-                            let copy = JSON.parse(JSON.stringify(option[option.exportOptions[i]]));
-                            copy.prototype = option[option.exportOptions[i]].prototype;
-                            options[key][option.exportOptions[i]] = copy;
-                        }
-                    } else {
-                        options[key][option.exportOptions[i]] = option[option.exportOptions[i]];
-                    }
+            if(this.options[key].allowEdit) {
+                let j = this.options[key].getJSON(true);
+                if(j != undefined) {
+                    options[key] = j;
                 }
             }
         });
@@ -409,25 +450,25 @@ class ElementContainer {
                 transformationTypes.forEach(transformationType => {
                     if(json[key].hasOwnProperty(transformationType)) {
                         if(json[key][transformationType].hasOwnProperty("x") || json[key][transformationType].hasOwnProperty("r")) {
-                            this.savedTransform[transformationType] = json[key][transformationType];
+                            this.get("transform")[transformationType] = json[key][transformationType];
                         } else {
                             if(json[key][transformationType].hasOwnProperty("default")) {
-                                this.savedTransform[transformationType] = json[key][transformationType].default;
+                                this.get("transform")[transformationType] = json[key][transformationType].default;
                             }
                             if(json[key][transformationType].hasOwnProperty("min")) {
-                                this.savedTransform[transformationType+"Min"] = json[key][transformationType].min;
+                                this.get("transform")[transformationType+"Min"] = json[key][transformationType].min;
                             }
                             if(json[key][transformationType].hasOwnProperty("max")) {
-                                this.savedTransform[transformationType+"Max"] = json[key][transformationType].max;
+                                this.get("transform")[transformationType+"Max"] = json[key][transformationType].max;
                             }
                             if(json[key][transformationType].hasOwnProperty("increment")) {
-                                this.incrementTransform[transformationType] = json[key][transformationType].increment;
+                                this.get("transform", "increment")[transformationType] = json[key][transformationType].increment;
                             }
                         }
                     }
                 });
-                this.getOptionValue("Transform") = this.savedTransform.getCopy();
-            } if (key == "children") {
+                this.getOption("transform").save();
+            } else if (key == "children") {
                 for(let j = 0; j < json.children.length; j ++) {
                     let child = json.children[j];
                     let newChild;
@@ -451,23 +492,8 @@ class ElementContainer {
                     await newChild.init(child, false);
                     this.addableChildren.push(newChild);
                 }
-            } else if (this.options.hasOwnProperty(key)) {
-                if(typeof json[key] === "boolean") {
-                    this.options[key].allowEdit = json[key];
-                } else if(json[key] instanceof Object) {
-                    if(!json[key].hasOwnProperty("allowEdit")) {
-                        this.options[key].allowEdit = true;
-                    }
-                    Object.keys(json[key]).forEach(key2 => {
-                        if(key2 == "default" && this.options[key].hasOwnProperty("defaultKeys")) {
-                            this.options[key].defaultKeys.forEach(defaultKey => {
-                                this.options[key][defaultKey] = json[key][key2];;
-                            });
-                        } else {
-                            this.options[key][key2] = json[key][key2];
-                        }
-                    });
-                }
+            } else if (Object.hasOwn(this.options, key)) {
+                this.options[key].applyJSON(json[key]);
             } else if (this.hasOwnProperty(key)) {
                 this[key] = json[key];
             }
@@ -485,7 +511,7 @@ class ElementContainer {
     //     }
     // }
     refreshDisplay() {
-        this.getOptionValue("Transform") = this.savedTransform.getCopy();
+        this.getOption("transform").revert();
     }
     refreshChildrenNode() {
         const node = this.createChildrenNode();
@@ -520,7 +546,14 @@ class ElementContainer {
         }
     }
     saveDisplayTransform() {
-        this.savedTransform = this.getOptionValue("Transform").getCopy();
+        this.get("transform").saved = this.get("transform").getCopy();
+    }
+    set(option, op1, op2) {
+        if(op2 == undefined) {
+            this.options[option].setValue("value", op1);
+        } else {
+            this.options[option].setValue(op1, op2);
+        }
     }
     setup(p) {
         this.children.forEach(child => {
@@ -536,8 +569,5 @@ class ElementContainer {
             this.childrenNode.style = this.collapsed ? "display:none;" : "";
         }
         return this.collapsed;
-    }
-    toggleHidden() {
-        this.options.hideable.hidden = !this.options.hideable.hidden;
     }
 }

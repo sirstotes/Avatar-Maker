@@ -41,6 +41,7 @@ function showColorPalette() {
             //button.style = `background-color: rgb(${red(color)}, ${green(color)}, ${blue(color)})`;
             button.onclick = function() {
                 selectedElement.setDisplayColor(button.color);
+                updateDraw = true;
                 refreshColorPalette();
             };
             document.getElementById("palette_container").appendChild(button);
@@ -52,11 +53,19 @@ function showColorPalette() {
     updateDraw = true;
 }
 function getPickedColor() {
-    return `hsl(${selectedHSL.h}, ${selectedHSL.s}%, ${selectedHSL.l}%)`;
+    if(selectedElement.get("colors", "mode") == "tint") {
+        return `hsl(${selectedHSL.h}, ${selectedHSL.s}%, ${selectedHSL.l}%)`;
+    } else {
+        return selectedHSL;
+    }
 }
 function showColorPicker() {
     if (selectedElement != undefined) {
-        selectedHSL = getDisplayColorAsHSL(selectedElement.getDisplayColor());
+        if(selectedElement.get("colors", "mode") == "tint") {
+            selectedHSL = getDisplayColorAsHSL(selectedElement.getDisplayColor());
+        } else {
+            selectedHSL = selectedElement.getDisplayColor();
+        }
         document.getElementById("color_preview").style = `background-color:${selectedElement.getDisplayColor()};`;
         document.getElementById("color_picker_hue").value = selectedHSL.h;
         document.getElementById("color_picker_saturation").value = selectedHSL.s;
@@ -129,7 +138,7 @@ function showImageSelectPopup(element) {
     container.innerHTML = "";
     //container.selectedImage = element.getCurrentImage();
     element.images.forEach(image => {
-        selectingSketches.push(new p5(image.getSketch(image == element.getCurrentImage(), element.getDisplayColor(), function() {
+        selectingSketches.push(new p5(image.getSketch(image == element.getCurrentImage(), new ImageSettings().tint(element.getDisplayColor()).recolorMode(element.get("colors", "mode")), function() {
             element.selectImage(image);
             clearExtraCanvases();
             hidePopups();
@@ -148,7 +157,7 @@ function showElementSelectPopup(element) {
     selectedElement = element;
     if(element.addableChildren.length > 1) {
         element.addableChildren.forEach(child => {
-            selectingSketches.push(new p5(child.getCurrentImage().getSketch(false, child.getDisplayColor(), function() {
+            selectingSketches.push(new p5(child.getCurrentImage().getSketch(false, new ImageSettings().tint(child.getDisplayColor()).recolorMode(child.get("colors", "mode")), function() {
                 clearExtraCanvases();
                 hidePopups();
                 updateDraw = true;
@@ -247,7 +256,11 @@ function updateSelectedColor() {
         let l = document.getElementById("color_picker_lightness").value;
         selectedHSL = {h: h, s: s, l: l};
         let color = `hsl(${selectedHSL.h}, ${selectedHSL.s}%, ${selectedHSL.l}%)`;
-        selectedElement.setDisplayColor(color);
+        if(selectedElement.get("colors", "mode") == "tint") {
+            selectedElement.setDisplayColor(color);
+        } else {
+            selectedElement.setDisplayColor(selectedHSL);
+        }
         document.getElementById("color_preview").style = `background-color:${color};`;
         setSliderColors(selectedHSL);
     }
@@ -291,7 +304,9 @@ function hideColorControls(save) {
 }
 function hideColorPicker(save) {
     if(save) {
-        selectedElement.addColorToPalette(getPickedColor());
+        if(selectedElement.get("colors", "mode") == "tint") {
+            selectedElement.addColorToPalette(getPickedColor());
+        }
         selectedElement.setDisplayColor(getPickedColor());
     }
     hideControls(false);
@@ -342,6 +357,7 @@ async function loadChanges(changes) {
         });
         for(let i = 0; i < parsed.addedElements.length; i ++) {
             let element = parsed.addedElements[i];
+            element.removeable = true;
             if(elementLookupTable.hasOwnProperty(element.name) && elementLookupTable.hasOwnProperty(element.parentName)) {
                 let newElement = await elementLookupTable[element.name].getClone(elementLookupTable[element.name].exportOptions());
                 await newElement.processJSON(element, false);

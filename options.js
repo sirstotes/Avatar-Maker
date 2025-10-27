@@ -1,29 +1,33 @@
 class Option {
-    constructor(name, icon) {
+    constructor(element, name, icon) {
+        this.element = element;
         this.name = name;
         this.icon = `<img class='icon' src='${icon}'>`;
         this.allowEdit = false;
         this.requiresConfirmation = false;
+        this.shouldSave = {};
         this.properties = {};
         this.altIcons = {};
         this.defaultValues = {};
-        this.onclick = function(e) {};
+        this.onclick = function(element, button) {};
         this.getStyle = e => "";
     }
-    icon(property, value, icon) {
+    addIcon(property, value, icon) {
         if(this.altIcons[property] == undefined) {
             this.altIcons[property] = {};
         }
-        this.altIcons[property][value] = icon;
-    }
-    onclick(fun) {
-        this.onclick = fun;
+        this.altIcons[property][value] = `<img class='icon' src='${icon}'>`;
         return this;
     }
-    property(name, value, split = false) {
+    click(func) {
+        this.onclick = func;
+        return this;
+    }
+    property(name, value, o = {}) {
+        let options = Object.assign({split: false, save:true}, o);
         this.defaultValues[name] = value;
         this.defaultKey = name;
-        if(split) {
+        if(options.split) {
             this.properties[name] = {
                 display: value,
                 saved: value
@@ -31,35 +35,116 @@ class Option {
         } else {
             this.properties[name] = value;
         }
+        this.shouldSave[name] = options.save;
+        return this;
+    }
+    randomFunction(func) {
+        this.randomValue = func;
         return this;
     }
     requireConfirmation() {
-        this.requireConfirmation = true;
+        this.requiresConfirmation = true;
         return this;
     }
     style(fun) {
         this.getStyle = fun;
+        return this;
     }
-    getIcon(property) {
-        if(this.altIcons[property][this.properties[property]] != undefined) {
+
+    isDefault() {
+        for(let i = 0; i < Object.keys(this.properties).length; i ++) {
+            let key = Object.keys(this.properties)[i];
+            if(this.getValue(key) != this.defaultValues[key]) {
+                return false;
+            }
+        }
+        return true;
+    }
+    getIcon(property = "value") {
+        if(Object.hasOwn(this.altIcons, property) && this.altIcons[property][this.properties[property]] != undefined) {
             return this.altIcons[property][this.properties[property]];
         }
         return this.icon;
     }
-    getJSON() {
-        return {};
+    getJSON(all = false) {
+        let json = {};
+        Object.keys(this.properties).forEach(key => {
+            if(all || (this.getValue(key) != this.defaultValues[key] && this.shouldSave[key])) {
+                json[key] = this.getValue(key);
+            }
+        });
+        return json;
     }
-    getValue(name = undefined) {
-        if(name == undefined) {
-            return this.properties[name].display;
+    getOnclick(element, button) {
+        let thisInstance = this;
+        if(this.requiresConfirmation) {
+            return function() {
+                button.style = "background-color:red;";
+                button.innerHTML = "<img class='icon' src='assets/check.png' style='filter:invert(1);'>";
+                button.onclick = function() {
+                    thisInstance.onclick(element, button);
+                };
+                if(trashedButton != undefined) {
+                    refreshTrashedButton();
+                }
+                trashedButton = button;
+            }
         }
-        return this.properties.value.display;
+        return function() {
+            thisInstance.onclick(element, button);
+        }
     }
-    applyJSON(json) {
+    getValue(name = "value") {
+        let prop = this.properties[name];
+        
+        if(prop != undefined && Object.hasOwn(prop, "display")) {
+            return prop.display;
+        }
+        return prop;
+    }
+    hasDefinedProperty(property) {
+        return Object.hasOwn(this.properties, property) && this.properties[property] != undefined;
+    }
 
+    applyJSON(json) {
+        if(typeof json === "boolean") {
+            this.allowEdit = json;
+        } else if(json instanceof Object) {
+            if(!Object.hasOwn(json, "allowEdit")) {
+                this.allowEdit = true;
+            }
+            Object.keys(json).forEach(key => {
+                if(key == "default") {
+                    this.defaultValues["value"] = json[key];
+                    this.setValue("value", json[key]);
+                } else if(key == "copy") {
+                    if(Object.hasOwn(elementLookupTable, json[key])) {
+                        this.element.replaceOptionReference(this.name, elementLookupTable[json[key]].getOption(this.name));
+                    } else {
+                        console.error(`Tried to copy option from unknown element ${json[key]}`);
+                    }
+                } else if(Object.hasOwn(this.properties, key)) {
+                    this.setValue(key, json[key]);
+                } else if(Object.hasOwn(this, key)) {
+                    this[key] = json[key];
+                } else {
+                    console.error(`Unknown key '${key}' given for option '${this.name}'`);
+                }
+            });
+        }
     }
     clone() {
         return this;
+    }
+    randomValue(property) {
+        // let type = typeof this.defaultValues[this.property];
+        // if(type === "boolean") {
+        //     return Math.random() >= 0.5;
+        // } else if(type == "number") {
+        //     return Math.random();
+        // } else {
+            console.error(`Unable to generate a random value for property ${this.name}:${property}`);
+        // }
     }
     revert() {
         Object.keys(this.properties).forEach(key => {
@@ -75,81 +160,30 @@ class Option {
             }
         });
     }
+    setValue(property = "value", value, all = false) {
+        if(!Object.hasOwn(this.properties, property)) {
+            console.error(`Tried to set unknown property ${this.name}:${property}`);
+            return;
+        }
+
+        if(value instanceof Object && Object.hasOwn(value, "copy")) {
+            if(Object.hasOwn(elementLookupTable, value.copy)) {
+                value = elementLookupTable[value.copy].get(this.name, property);
+            } else {
+                console.error(`Tried to copy property ${this.name}:${property} from unknown element ${json[key]}`);
+            }
+        } else if (value == "random") {
+            value = this.randomValue(property);
+            all = true;
+        }
+
+        if(this.properties[property] != undefined && Object.hasOwn(this.properties[property], "display")) {
+            this.properties[property].display = value;
+            if(all) {
+                this.properties[property].saved = value;
+            }
+        } else {
+            this.properties[property] = value;
+        }
+    }
 }
-const Transform = new Option("transform", "assets/move.png")
-.property("value", new ConstrainedTransform(vec(0, 0)), true)
-.property("increment", new Transform(vec(1, 1), vec(0.01, 0.01), 1))
-.property("allowTranslation", true)
-.property("allowRotation", true)
-.property("allowScale", true)
-.onclick(function(element) {
-    hideControls();
-    selectedElement = element;
-    cancelButton(this);
-    showMovementControls();
-});
-const HFlip = new Option("horizontalFlip", "assets/horizontal.png").property("value", 1)
-.onclick(function(element) {
-    element.setOptionValue("horizontalFlip", element.getOptionValue("horizontalFlip") * -1);
-});
-const VFlip = new Option("verticalFlip", "assets/vertical.png").property("value", 1)
-.onclick(function(element) {
-    element.setOptionValue("verticalFlip", element.getOptionValue("verticalFlip") * -1);
-});
-const Hide = new Option("hide", "assets/shown.png").property("value", false).altIcon("hidden", true, "assets/hidden.png")
-.onclick(function(element) {
-    updateDraw = true;
-    element.setOptionValue("hide", !element.getOptionValue("hide"));
-    this.innerHTML = element.getOption("Hide").getIcon();
-});
-const Clone = new Option("Clone", "assets/clone.png")
-.onclick(function(element) {
-    updateDraw = true;
-    element.clone();
-});
-// function() {
-//     this.style = "background-color:red;";
-//     this.innerHTML = "<img class='icon' src='assets/check.png' style='filter:invert(1);'>";
-//     this.onclick;
-//     if(trashedButton != undefined) {
-//         refreshTrashedButton();
-//     }
-//     trashedButton = this;
-// }
-const Remove = new Option("Remove", "assets/delete.png").requireConfirmation()
-.onclick(function(element) {
-    element.parent.removeChild(element);
-    updateDraw = true;
-});
-const Clip = new Option("Clip", "assets/mask.png").property("value", false)
-.onclick(function(element) {
-    return function() {
-        element.toggleClip();
-        updateDraw = true;
-    }
-});
-const RECOLOR_MODE = {
-    TINT: 0,
-    SHIFT: 1
-};
-const Colors = new Option("Colors", "assets/color-picker.png")
-.property("mode", RECOLOR_MODE.TINT)
-.property("palette", undefined)
-.property("allowCustomColors", true)
-.property("value", "white", true)
-.style(function(element) {
-    if(element.getDisplayColor() != "white") {
-        return `background-color:${element.getDisplayColor()};`;
-    }
-    return "";
-})
-.onclick(function() {
-    hideControls();
-    selectedElement = element;
-    cancelButton(this);
-    if(element.controls.colors.mode == "tint") {
-        showColorPalette();
-    } else {
-        showHueShift();
-    }
-});
