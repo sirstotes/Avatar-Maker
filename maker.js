@@ -41,6 +41,7 @@ function showColorPalette() {
             //button.style = `background-color: rgb(${red(color)}, ${green(color)}, ${blue(color)})`;
             button.onclick = function() {
                 selectedElement.setDisplayColor(button.color);
+                updateDraw = true;
                 refreshColorPalette();
             };
             document.getElementById("palette_container").appendChild(button);
@@ -52,11 +53,19 @@ function showColorPalette() {
     updateDraw = true;
 }
 function getPickedColor() {
-    return `hsl(${selectedHSL.h}, ${selectedHSL.s}%, ${selectedHSL.l}%)`;
+    if(selectedElement.get("colors", "mode") == "tint") {
+        return `hsl(${selectedHSL.h}, ${selectedHSL.s}%, ${selectedHSL.l}%)`;
+    } else {
+        return selectedHSL;
+    }
 }
 function showColorPicker() {
     if (selectedElement != undefined) {
-        selectedHSL = getDisplayColorAsHSL(selectedElement.getDisplayColor());
+        if(selectedElement.get("colors", "mode") == "tint") {
+            selectedHSL = getDisplayColorAsHSL(selectedElement.getDisplayColor());
+        } else {
+            selectedHSL = selectedElement.getDisplayColor();
+        }
         document.getElementById("color_preview").style = `background-color:${selectedElement.getDisplayColor()};`;
         document.getElementById("color_picker_hue").value = selectedHSL.h;
         document.getElementById("color_picker_saturation").value = selectedHSL.s;
@@ -129,13 +138,11 @@ function showImageSelectPopup(element) {
     container.innerHTML = "";
     //container.selectedImage = element.getCurrentImage();
     element.images.forEach(image => {
-        selectingSketches.push(new p5(image.getSketch(image == element.getCurrentImage(), element.getDisplayColor(), p => function() {
-            if(p.mouseX > 0 && p.mouseX < p.canvasSize && p.mouseY > 0 && p.mouseY < p.canvasSize) {
-                element.selectImage(image);
-                clearExtraCanvases();
-                hidePopups();
-                updateDraw = true;
-            }
+        selectingSketches.push(new p5(image.getSketch(image == element.getCurrentImage(), new ImageSettings().tint(element.getDisplayColor()).recolorMode(element.get("colors", "mode")), function() {
+            element.selectImage(image);
+            clearExtraCanvases();
+            hidePopups();
+            updateDraw = true;
         })));
     });
     //refreshElementSelect();
@@ -150,12 +157,11 @@ function showElementSelectPopup(element) {
     selectedElement = element;
     if(element.addableChildren.length > 1) {
         element.addableChildren.forEach(child => {
-            selectingSketches.push(new p5(child.getCurrentImage().getSketch(false, child.getDisplayColor(), p => function() {
-                if(p.mouseX > 0 && p.mouseX < p.canvasSize && p.mouseY > 0 && p.mouseY < p.canvasSize) {//onclick
-                    clearExtraCanvases();
-                    hidePopups();
-                    child.cloneTo(element).then(clone => showImageSelectPopup(clone));
-                }
+            selectingSketches.push(new p5(child.getCurrentImage().getSketch(false, new ImageSettings().tint(child.getDisplayColor()).recolorMode(child.get("colors", "mode")), function() {
+                clearExtraCanvases();
+                hidePopups();
+                updateDraw = true;
+                child.cloneTo(element).then(clone => showImageSelectPopup(clone));
             })));
         });
     } else {
@@ -250,7 +256,11 @@ function updateSelectedColor() {
         let l = document.getElementById("color_picker_lightness").value;
         selectedHSL = {h: h, s: s, l: l};
         let color = `hsl(${selectedHSL.h}, ${selectedHSL.s}%, ${selectedHSL.l}%)`;
-        selectedElement.setDisplayColor(color);
+        if(selectedElement.get("colors", "mode") == "tint") {
+            selectedElement.setDisplayColor(color);
+        } else {
+            selectedElement.setDisplayColor(selectedHSL);
+        }
         document.getElementById("color_preview").style = `background-color:${color};`;
         setSliderColors(selectedHSL);
     }
@@ -294,7 +304,9 @@ function hideColorControls(save) {
 }
 function hideColorPicker(save) {
     if(save) {
-        selectedElement.addColorToPalette(getPickedColor());
+        if(selectedElement.get("colors", "mode") == "tint") {
+            selectedElement.addColorToPalette(getPickedColor());
+        }
         selectedElement.setDisplayColor(getPickedColor());
     }
     hideControls(false);
@@ -345,6 +357,7 @@ async function loadChanges(changes) {
         });
         for(let i = 0; i < parsed.addedElements.length; i ++) {
             let element = parsed.addedElements[i];
+            element.removeable = true;
             if(elementLookupTable.hasOwnProperty(element.name) && elementLookupTable.hasOwnProperty(element.parentName)) {
                 let newElement = await elementLookupTable[element.name].getClone(elementLookupTable[element.name].exportOptions());
                 await newElement.processJSON(element, false);
@@ -423,24 +436,14 @@ window.addEventListener("beforeunload", function(e){
     saveChangesToLocalStorage();
 });
 
+let buffers;
 let p;
 let pack;
 let root;
+let maskBuffer;
 let elementLookupTable = {};
 let addedElements = [];
 let updateDraw = true;
-
-function setRGBA(pixels, width, x, y, r, g, b, a) {
-    let n = (x + y*width) * 4;
-    pixels[n] = r;
-    pixels[n + 1] = g;
-    pixels[n + 2] = b;
-    pixels[n + 3] = a;
-}
-function getRGBA(pixels, width, x, y) {
-    let n = (x + y*width) * 4;
-    return [pixels[n], pixels[n + 1], pixels[n + 2], pixels[n + 3]];
-}
 
 async function onLoad() {
     if(localStorage.getItem("changes") != undefined && localStorage.getItem("changes") != "undefined") {
@@ -452,12 +455,10 @@ async function onLoad() {
             root.preload(p);
         }
         p.setup = function() {
-            let canvas = p.createCanvas(pack.canvasWidth, pack.canvasHeight);
-            canvas.removeAttribute("style");
-            canvas.parent('canvas_container');
-            p.angleMode(p.DEGREES);
-            p.imageMode(p.CENTER);
-            p.rectMode(p.CENTER);
+            let c = p.createCanvas(pack.canvasWidth, pack.canvasHeight);
+            c.removeAttribute("style");
+            c.parent('canvas_container');
+            buffers = new Buffers(p, pack.canvasWidth, pack.canvasHeight);
             root.setup(p);
             document.getElementsByClassName("controls_container").forEach(element => {
                 element.style = `aspect-ratio:${pack.canvasWidth}/${pack.canvasHeight};`;
@@ -467,11 +468,12 @@ async function onLoad() {
         p.draw = function() {
             if(updateDraw) {
                 updateDraw = false;
-                root.calculateMasks();
+                buffers.clear();
+                root.render(buffers);
                 p.clear();
-                root.draw(p);
+                p.image(buffers.get(0), 0, 0);
                 if(selectedElement != undefined) {
-                    if(selectedElement.getGlobalTranslation().y > pack.canvasHeight*0.75) {
+                    if(selectedElement.getGlobalTranslation().y > buffers.height*0.75) {
                         document.getElementsByClassName("controls").forEach(element => {
                             element.style = "";
                         });
@@ -480,19 +482,9 @@ async function onLoad() {
                             element.style = "bottom:0;";
                         });
                     }
-                    selectedElement.drawBoundingBox(p);
+                    selectedElement.drawBoundingBox(buffers.get(0));
                 }
             }
-            if (p.frameCount%50 == 0) {
-                updateDraw = true;
-            }
-        }
-
-        p.mouseClicked = function() {
-            p.loadPixels();
-            //setRGBA(p.pixels, p.width, Math.floor(p.mouseX), Math.floor(p.mouseY), 255, 0, 0, 255);
-            console.log(getRGBA(p.pixels, p.width, Math.floor(p.mouseX), Math.floor(p.mouseY)));
-            //p.updatePixels();
         }
     });
 }

@@ -8,138 +8,62 @@ class ElementContainer {
         this.outermost = outermost;
         this.children = [];
         this.addableChildren = [];
-        this.displayTransform = new ConstrainedTransform(vec(0, 0));
-        this.savedTransform = new ConstrainedTransform();
-        this.incrementTransform = new Transform(vec(1, 1), vec(0.01, 0.01), 1);
         this.collapsible = false;
         this.collapsed = false;
-        this.shouldCreateNode = !outermost;
-        this.reorderable = false;
-        this.controls = {
-            moveable: {
-                allowEdit: false,
-                translation: true,
-                rotation: true,
-                scale: true,
-                name: "Move",
-                icon: "<img class='icon' src='assets/move.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        hideControls();
-                        selectedElement = element;
-                        cancelButton(this);
-                        showMovementControls();
-                    }
-                }
-            },
-            horizontalFlip: {
-                allowEdit: false,
-                flip: 1,
-                name: "Flip",
-                icon: "<img class='icon' src='assets/horizontal.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        element.controls.horizontalFlip.flip *= -1;
-                    }
-                }
-            },
-            verticalFlip: {
-                allowEdit: false,
-                flip: 1,
-                name: "Flip",
-                icon: "<img class='icon' src='assets/vertical.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        element.controls.verticalFlip.flip *= -1;
-                    }
-                }
-            },
-            clip: {
-                allowEdit: false,
-                clipping: false,
-                exportDeepCopies: false,
-                exportOptions: ["clipping"],
-                name: "Clip",
-                icon: "<img class='icon' src='assets/mask.png'>",
-                getOnclick: function(element) {
+        this.optionSources = {};
+        this.options = {
+            transform: new Option(this, "transform", "assets/move.png")
+                .property("value", new ConstrainedTransform(vec(0, 0)), {split: true})
+                .property("increment", new Transform(vec(1, 1), vec(0.01, 0.01), 1))
+                .property("allowTranslation", true)
+                .property("allowRotation", true)
+                .property("allowScale", true)
+                .click(function(element, button) {
+                    hideControls();
+                    selectedElement = element;
+                    cancelButton(button);
+                    showMovementControls();
+                }),
+            horizontalFlip: new Option(this, "horizontalFlip", "assets/horizontal.png")
+                .property("value", 1)
+                .click(function(element, button) {
+                    element.set("horizontalFlip", element.get("horizontalFlip") * -1);
+                }),
+            verticalFlip: new Option(this, "verticalFlip", "assets/vertical.png")
+                .property("value", 1)
+                .click(function(element, button) {
+                    element.set("verticalFlip", element.get("verticalFlip") * -1);
+                }),
+            hide: new Option(this, "hide", "assets/shown.png")
+                .property("value", false)
+                .addIcon("value", true, "assets/hidden.png")
+                .click(function(element, button) {
+                    updateDraw = true;
+                    element.set("hide", !element.get("hide"));
+                    button.innerHTML = element.getOption("hide").getIcon();
+                }),
+            cloneable: new Option(this, "cloneable", "assets/clone.png")
+                .click(function(element, button) {
+                    updateDraw = true;
+                    element.clone();
+                }),
+            removeable: new Option(this, "removeable", "assets/delete.png")
+                .requireConfirmation()
+                .click(function(element, button) {
+                    element.parent.removeChild(element);
+                    updateDraw = true;
+                }),
+            clip: new Option(this, "clip", "assets/mask.png")
+                .property("value", false)
+                .click(function(element, button) {
                     return function() {
                         element.toggleClip();
-                    }
-                }
-            },
-            hideable: {
-                allowEdit: false,
-                hidden: false,
-                exportDeepCopies: false,
-                exportOptions: ["hidden"],
-                name: "Hide",
-                icon: "<img class='icon' src='assets/shown.png'>",
-                icon2: "<img class='icon' src='assets/hidden.png'>",
-                getOnclick: function(element) {
-                    return function() {
                         updateDraw = true;
-                        element.toggleHidden();
-                        console.log(element.name);
-                        console.log("Before: ", element.getElementBefore());
-                        console.log("After: ", element.getElementAfter());
-                        this.innerHTML = element.getIconForOption("hideable");
                     }
-                },
-                getJSON: function(element) {
-                    if(!element.controls.hideable.allowEdit) {
-                        return;
-                    }
-                    return {
-                        "key":"hideable",
-                        "value": {
-                            "hidden": element.isHidden()
-                        }
-                    }
-                }
-            },
-            cloneable: {
-                allowEdit: false,
-                name: "Clone",
-                icon: "<img class='icon' src='assets/clone.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        updateDraw = true;
-                        element.clone();
-                    }
-                }
-            },
-            removeable: {
-                allowEdit: false,
-                name: "Remove",
-                icon: "<img class='icon' src='assets/delete.png'>",
-                getOnclick: function(element) {
-                    return function() {
-                        console.log(element.name);
-                        console.log("Before: ", element.getElementBefore());
-                        console.log("After: ", element.getElementAfter());
-                        this.style = "background-color:red;";
-                        this.innerHTML = "<img class='icon' src='assets/check.png' style='filter:invert(1);'>";
-                        this.onclick = function() {
-                            element.parent.removeChild(element);
-                            updateDraw = true;
-                        }
-                        if(trashedButton != undefined) {
-                            refreshTrashedButton();
-                        }
-                        trashedButton = this;
-                    }
-                },
-                getJSON: function(element) {
-                    if(element.controls.removeable.allowEdit) {
-                        return {
-                            "key":"removeable",
-                            "value": element.controls.removeable.allowEdit
-                        }
-                    }
-                    return undefined;
-                }
-            }
+                })
         };
+        this.shouldCreateNode = !outermost;
+        this.reorderable = false;
         await this.processJSON(json);
         if(this.name != "") {
             elementLookupTable[this.name] = this;
@@ -155,13 +79,13 @@ class ElementContainer {
         return this.parent.children.indexOf(this) < this.parent.children.length - 1;
     }
     isHidden() {
-        return this.controls.hideable.hidden;
+        return this.get("hide");
     }
-    getClipFunction() {
-        if(this.parent != undefined) {
-            return this.parent.getClipFunction();
-        }
-        return undefined;
+    get(option, property=undefined) {
+        return this.options[option].getValue(property);
+    }
+    getOption(option) {
+        return this.options[option];
     }
     async getClone(options) {
         let e = new this.constructor();
@@ -173,35 +97,44 @@ class ElementContainer {
         addedElements.push(e);
         return e;
     }
-    getElementBefore(child) {
-        for(let i = this.children.indexOf(child)-1; i > 0; i --) {
-            if(this.children[i] instanceof Element) {
-                return this.children[i];
-            }
-        }
-        if(this.parent == undefined) {
-            return undefined;
-        }
-        return this.parent.getElementBefore(this);
-    }
-    getElementAfter(child) {
-        for(let i = this.children.indexOf(child)+1; i < this.children.length; i ++) {
-            if(this.children[i] instanceof Element) {
-                return this.children[i];
-            }
-        }
-        if(this.parent == undefined) {
-            return undefined;
-        }
-        return this.parent.getElementAfter(this);
-    }
+    // getElementBefore(child) {
+    //     for(let i = this.children.indexOf(child)-1; i > 0; i --) {
+    //         if(this.children[i] instanceof Element) {
+    //             return this.children[i];
+    //         }
+    //     }
+    //     if(this.parent == undefined) {
+    //         return undefined;
+    //     }
+    //     return this.parent.getElementBefore(this);
+    // }
+    // getElementAfter(child) {
+    //     for(let i = this.children.indexOf(child)+1; i < this.children.length; i ++) {
+    //         if(this.children[i] instanceof Element) {
+    //             return this.children[i];
+    //         }
+    //     }
+    //     if(this.parent == undefined) {
+    //         return undefined;
+    //     }
+    //     return this.parent.getElementAfter(this);
+    // }
+    // getFirstElementParent() {
+    //     if(this.parent == undefined) {
+    //         return undefined;
+    //     }
+    //     if(this.parent instanceof Element) {
+    //         return this.parent;
+    //     }
+    //     return this.parent.getFirstElementParent();
+    // }
     getGlobalTranslation() {
         let translation = vec(0, 0);
         if(this.parent != undefined) {
             translation = this.parent.getGlobalTranslation();
         }
-        translation.x += this.displayTransform.translation.x;
-        translation.y += this.displayTransform.translation.y;
+        translation.x += this.get("transform").translation.x;
+        translation.y += this.get("transform").translation.y;
         return translation;
     }
     getGlobalScale() {
@@ -209,36 +142,38 @@ class ElementContainer {
         if(this.parent != undefined) {
             scale = this.parent.getGlobalTranslation();
         }
-        scale.x *= this.displayTransform.scale.x * this.controls.horizontalFlip.flip;
-        scale.y *= this.displayTransform.scale.y * this.controls.verticalFlip.flip;
+        scale.x *= this.get("transform").scale.x * this.get("Horizontal Flip");
+        scale.y *= this.get("transform").scale.y * this.get("Vertical Flip");
         return scale;
     }
-    getIconForOption(option) {
-        if(option == "hideable" && this.isHidden()) {
-            return this.controls[option].icon2;
-        }
-        return this.controls[option].icon;
-    }
-    getNextElement() {
-        if(this.parent == undefined) {
-            return undefined;
-        }
-        return this.parent.getElementAfter(this);
-    }
+    // getNextElement() {
+    //     if(this.parent == undefined) {
+    //         return undefined;
+    //     }
+    //     return this.parent.getElementAfter(this);
+    // }
     getOptionAmount() {
         let num = 1;
-        Object.keys(this.controls).forEach(key => {
-            if(this.controls[key].allowEdit) {
+        Object.keys(this.options).forEach(key => {
+            if(this.options[key].allowEdit) {
                 num ++;
             }
         });
         return num;
     }
-    getPreviousElement() {
-        if(this.parent == undefined) {
-            return undefined;
-        }
-        return this.parent.getElementBefore(this);
+    // getPreviousElement() {
+    //     if(this.parent == undefined) {
+    //         return undefined;
+    //     }
+    //     return this.parent.getElementBefore(this);
+    // }
+    needsNewBuffer() {
+        return this.children.some(child => {
+            if (child instanceof Element) {
+                return child.needsParentBufferSeparate();
+            }
+            return child.needsNewBuffer();
+        });
     }
     addChild(element) {
         this.children.push(element);
@@ -262,18 +197,8 @@ class ElementContainer {
         if(this.parent != undefined) {
             this.parent.applyTransforms(p);
         }
-        this.displayTransform.apply(p);
-        p.scale(this.controls.horizontalFlip.flip, this.controls.verticalFlip.flip);
-    }
-    shouldCalculateMask() {
-        return this.children.some((child) => child.shouldCalculateMask());
-    }
-    calculateMask() {
-
-    }
-    calculateMasks() {
-        this.calculateMask();
-        this.children.forEach(child => child.calculateMasks());
+        this.get("transform").apply(p);
+        p.scale(this.get("horizontalFlip"), this.get("verticalFlip"));
     }
     async clone() {
         const options = this.exportOptions();
@@ -362,21 +287,17 @@ class ElementContainer {
         if(!this.outermost) {
             mainDiv.appendChild(this.createMainButton());
         }
-        Object.keys(this.controls).forEach(key => {
-            const option = this.controls[key];
+        Object.keys(this.options).forEach(key => {
+            const option = this.options[key];
             if(option.allowEdit) {
                 const button = document.createElement("button");
                 button.classList.add("extrude");
-                if(option.hasOwnProperty("getStyle")) {
-                    button.getStyle = option.getStyle;
-                    button.style = option.getStyle(this);
-                }
-                button.innerHTML = this.getIconForOption(key);
-                button.defaultInnerHTML = option.icon;
-                if(option.getOnclick != undefined) {
-                    button.onclick = option.getOnclick(this);
-                    button.defaultOnclick = option.getOnclick(this);
-                }
+                button.getStyle = option.getStyle;
+                button.style = option.getStyle(this);
+                button.innerHTML = option.getIcon();
+                button.defaultInnerHTML = option.getIcon();
+                button.onclick = option.getOnclick(thisInstance, button);
+                button.defaultOnclick = option.getOnclick(thisInstance, button);
                 mainDiv.appendChild(button);
             }
         });
@@ -406,16 +327,40 @@ class ElementContainer {
         element.appendChild(mainDiv);
         return element;
     }
-    draw(p) {
+    render(buffers) {
         if(!this.isHidden()) {
-            for(let i = 0; i < this.children.length; i ++) {
-                this.children[i].draw(p);
+            if(this.needsNewBuffer()) {
+                this.applyTransforms(buffers.push());
+                this.draw(buffers.getCurrent());
+                buffers.getCurrent().resetMatrix();
+                this.children.forEach(child => {
+                    child.render(buffers);
+                });
+                if(this.get("clip", "clipping")) {
+                    buffers.pop(Buffers.clip(Buffers.normalBlend));
+                } else {
+                    buffers.pop();
+                }
+                buffers.getCurrent().resetMatrix();
+            } else {
+                this.applyTransforms(buffers.getCurrent());
+                this.draw(buffers.getCurrent());
+                buffers.getCurrent().resetMatrix();
+                this.children.forEach(child => {
+                    child.render(buffers);
+                });
             }
         }
     }
-    drawBoundingBox(p) {
+    replaceOptionReference(name, newReference) {
+        this.options[name] = newReference;
+    }
+    draw(buffer) {
+
+    }
+    drawBoundingBox(buffer) {
         this.children.forEach(child => {
-            child.drawBoundingBox(p);
+            child.drawBoundingBox(buffer);
         });
     }
     exportJSON() {
@@ -425,15 +370,15 @@ class ElementContainer {
         if(!this.base) {
             json.parentName = this.parent.name;
         }
-        let transformJSON = this.savedTransform.getJSON();
-        if(Object.keys(transformJSON).length != 0) {
+        let transformJSON = this.get("transform").getJSON();
+        if(Object.keys(transformJSON).length != 0) {//Don't save it if it's just default.
             json.transform = transformJSON;
         }
-        Object.keys(this.controls).forEach(key => {
-            if(this.controls[key].hasOwnProperty("getJSON")) {
-                let j = this.controls[key].getJSON(this);
+        Object.keys(this.options).forEach(key => {
+            if(!this.options[key].isDefault()) {
+                let j = this.options[key].getJSON();
                 if(j != undefined) {
-                    json[j.key] = j.value;
+                    json[key] = j;
                 }
             }
         });
@@ -448,23 +393,11 @@ class ElementContainer {
             collapsible: this.collapsible,
             collapsed: this.collapsed
         };
-        Object.keys(this.controls).forEach(key => {
-            const option = this.controls[key];
-
-            options[key] = {allowEdit:option.allowEdit};
-            if(option.hasOwnProperty("exportOptions")) {
-                for(let i = 0; i < option.exportOptions.length; i ++) {
-                    if(option.exportDeepCopies == true) {
-                        if(option[option.exportOptions[i]] instanceof ConstrainedTransform) {
-                            options[key][option.exportOptions[i]] = option[option.exportOptions[i]].getCopy();
-                        } else {
-                            let copy = JSON.parse(JSON.stringify(option[option.exportOptions[i]]));
-                            copy.prototype = option[option.exportOptions[i]].prototype;
-                            options[key][option.exportOptions[i]] = copy;
-                        }
-                    } else {
-                        options[key][option.exportOptions[i]] = option[option.exportOptions[i]];
-                    }
+        Object.keys(this.options).forEach(key => {
+            if(this.options[key].allowEdit) {
+                let j = this.options[key].getJSON(true);
+                if(j != undefined) {
+                    options[key] = j;
                 }
             }
         });
@@ -501,9 +434,12 @@ class ElementContainer {
         }
         return pos+1 < this.parent.children.length - 1;
     }
-    preload() {
+    preload(p) {
         this.children.forEach(child => {
-            child.preload();
+            child.preload(p);
+        });
+        this.addableChildren.forEach(child => {
+            child.preload(p);
         });
     }
     async processJSON(json, refreshNode = false) {
@@ -514,25 +450,25 @@ class ElementContainer {
                 transformationTypes.forEach(transformationType => {
                     if(json[key].hasOwnProperty(transformationType)) {
                         if(json[key][transformationType].hasOwnProperty("x") || json[key][transformationType].hasOwnProperty("r")) {
-                            this.savedTransform[transformationType] = json[key][transformationType];
+                            this.get("transform")[transformationType] = json[key][transformationType];
                         } else {
                             if(json[key][transformationType].hasOwnProperty("default")) {
-                                this.savedTransform[transformationType] = json[key][transformationType].default;
+                                this.get("transform")[transformationType] = json[key][transformationType].default;
                             }
                             if(json[key][transformationType].hasOwnProperty("min")) {
-                                this.savedTransform[transformationType+"Min"] = json[key][transformationType].min;
+                                this.get("transform")[transformationType+"Min"] = json[key][transformationType].min;
                             }
                             if(json[key][transformationType].hasOwnProperty("max")) {
-                                this.savedTransform[transformationType+"Max"] = json[key][transformationType].max;
+                                this.get("transform")[transformationType+"Max"] = json[key][transformationType].max;
                             }
                             if(json[key][transformationType].hasOwnProperty("increment")) {
-                                this.incrementTransform[transformationType] = json[key][transformationType].increment;
+                                this.get("transform", "increment")[transformationType] = json[key][transformationType].increment;
                             }
                         }
                     }
                 });
-                this.displayTransform = this.savedTransform.getCopy();
-            } if (key == "children") {
+                this.getOption("transform").save();
+            } else if (key == "children") {
                 for(let j = 0; j < json.children.length; j ++) {
                     let child = json.children[j];
                     let newChild;
@@ -556,23 +492,8 @@ class ElementContainer {
                     await newChild.init(child, false);
                     this.addableChildren.push(newChild);
                 }
-            } else if (this.controls.hasOwnProperty(key)) {
-                if(typeof json[key] === "boolean") {
-                    this.controls[key].allowEdit = json[key];
-                } else if(json[key] instanceof Object) {
-                    if(!json[key].hasOwnProperty("allowEdit")) {
-                        this.controls[key].allowEdit = true;
-                    }
-                    Object.keys(json[key]).forEach(key2 => {
-                        if(key2 == "default" && this.controls[key].hasOwnProperty("defaultKeys")) {
-                            this.controls[key].defaultKeys.forEach(defaultKey => {
-                                this.controls[key][defaultKey] = json[key][key2];;
-                            });
-                        } else {
-                            this.controls[key][key2] = json[key][key2];
-                        }
-                    });
-                }
+            } else if (Object.hasOwn(this.options, key)) {
+                this.options[key].applyJSON(json[key]);
             } else if (this.hasOwnProperty(key)) {
                 this[key] = json[key];
             }
@@ -581,8 +502,16 @@ class ElementContainer {
             this.refreshNode();
         }
     }
+    // recalculateParentMask() {
+    //     let parent = this.getFirstElementParent();
+    //     if(parent != undefined) {
+    //         this.applyTransforms(maskBuffer);
+    //         parent.calculateMask(maskBuffer);
+    //         p.resetMatrix();
+    //     }
+    // }
     refreshDisplay() {
-        this.displayTransform = this.savedTransform.getCopy();
+        this.getOption("transform").revert();
     }
     refreshChildrenNode() {
         const node = this.createChildrenNode();
@@ -617,7 +546,14 @@ class ElementContainer {
         }
     }
     saveDisplayTransform() {
-        this.savedTransform = this.displayTransform.getCopy();
+        this.get("transform").saved = this.get("transform").getCopy();
+    }
+    set(option, op1, op2) {
+        if(op2 == undefined) {
+            this.options[option].setValue("value", op1);
+        } else {
+            this.options[option].setValue(op1, op2);
+        }
     }
     setup(p) {
         this.children.forEach(child => {
@@ -627,17 +563,11 @@ class ElementContainer {
             child.setup(p);
         });
     }
-    toggleClip() {
-        this.controls.clip.clipping = !this.controls.clip.clipping;
-    }
     toggleCollapse() {
         this.collapsed = !this.collapsed;
         if(this.childrenNode != undefined) {
             this.childrenNode.style = this.collapsed ? "display:none;" : "";
         }
         return this.collapsed;
-    }
-    toggleHidden() {
-        this.controls.hideable.hidden = !this.controls.hideable.hidden;
     }
 }

@@ -5,6 +5,8 @@
         <link type="text/css" rel="stylesheet" href="style.css">
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.min.js"></script>
         <script type="text/javascript" src="transformer.js"></script>
+        <script type="text/javascript" src="options.js"></script>
+        <script type="text/javascript" src="buffers.js"></script>
         <script type="text/javascript" src="image.js"></script>
         <script type="text/javascript" src="element_container.js"></script>
         <script type="text/javascript" src="element.js"></script>
@@ -12,7 +14,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <h1>OpenAvi<span style="font-size:0.5em;">v0.3</span></h1>
+        <h1>OpenAvi<span style="font-size:0.5em;">v0.4</span></h1>
         <div id="workspace">
             <div id="canvas">
                 <div id="controls_position">
@@ -43,8 +45,6 @@
                             <input oninput="updateSelectedColor();" class="extrude" type="range" id="color_picker_hue" min="0" max="360"><br>
                             <input oninput="updateSelectedColor();" class="extrude" type="range" id="color_picker_saturation" min="0" max="100"><br>
                             <input oninput="updateSelectedColor();" class="extrude" type="range" id="color_picker_lightness" min="0" max="100"><br>
-                            <!-- <input oninput="updateSelectedColor(this.value);" id="color_picker_input" type="color" style="width:3em;height:3em;"><br>
-                             -->
                             <button class="extrude" onclick="hideColorPicker(true);hideColorControls(true);" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
                             <button class="extrude" onclick="hideColorPicker(false);" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
                         </div>

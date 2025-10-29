@@ -4,48 +4,50 @@ class Element extends ElementContainer {
     }
     async init(json = {}, base = true) {
         await super.init({}, base);
-        this.controls.colors = {
-            allowEdit: false,
-            displayTint: "white",
-            savedTint: "white",
-            customColorsAllowed: true,
-            palette: undefined,
-            exportDeepCopies: false,
-            exportOptions: ["displayTint", "savedTint", "customColorsAllowed", "palette"],
-            defaultKeys: ["displayTint", "savedTint"],
-            name: "Recolor",
-            icon: "<img class='icon' src='assets/color-picker.png'>",
-            getOnclick: function(element) {
-                return function() {
-                    hideControls();
-                    selectedElement = element;
-                    cancelButton(this);
-                    showColorPalette();
-                };
-            },
-            getJSON: function(element) {
-                if(element.getDisplayColor() != "white") {
-                    let json = {"key":"colors","value":{}};
-                    json.value.default = element.getDisplayColor();
-                    return json;
-                }
-                return undefined;
-                // if(element.hasColorPalette()) { //Not sure if I wanna save color palettes?
-                //     json.value.palette = element.getColorPalette();
-                // }
-            },
-            getStyle: function(element) {
-                if(element.getDisplayColor() != "white") {
-                    return `background-color:${element.getDisplayColor()};`;
-                }
-                return "";
-            }
-        };
         this.parent = undefined;
         this.name = "";
         this.thumbnail = undefined;
         this.images = [];
         this.afterImages = [];
+        this.options.colors = new Option(this, "colors", "assets/color-picker.png")
+            .property("mode", "tint")
+            .property("palette", undefined, {save:false})
+            .property("allowCustomColors", true)
+            .property("value", "white", {split: true})
+            .randomFunction(function(property) {
+                const randomColor = function() {
+                    return `hsl(${Math.floor(Math.random()*360)}, 100%, 50%)`;
+                }
+                if(property == "value") {
+                    if(this.hasDefinedProperty("palette")) {
+                        let pal = this.getValue("palette");
+                        return pal[Math.floor(Math.random()*pal.length)];
+                    } else {
+                        return randomColor();
+                    }
+                    //Pick random color from palette if it exists
+                } else if (property == "palette") {
+                    return [randomColor(), randomColor(), randomColor(), randomColor(), randomColor()];
+                } else {
+                    console.error(`Unable to generate a random value for property ${this.name}:${property}`);
+                }
+            })
+            .style(function(element) {
+                if(element.getDisplayColor() != "white") {
+                    return `background-color:${element.getDisplayColor()};`;
+                }
+                return "";
+            })
+            .click(function(element, button) {
+                hideControls();
+                selectedElement = element;
+                cancelButton(button);
+                if(element.get("colors", "mode") == "shift") {
+                    showColorPicker();
+                } else {
+                    showColorPalette();
+                }
+            });
         this.selectedImage = 0;
         this.childrenNode = undefined;
         await this.processJSON(json);
@@ -54,11 +56,11 @@ class Element extends ElementContainer {
             elementLookupTable[this.name] = this;
         }
 
-        if(this.hasColorPalette() && this.getColorPalette().hasOwnProperty("copy")) {
-            if(elementLookupTable.hasOwnProperty(this.getColorPalette().copy)) {
-                this.setColorPalette(elementLookupTable[this.getColorPalette().copy].getColorPalette());
-            }
-        }
+        // if(this.hasColorPalette() && this.getColorPalette().hasOwnProperty("copy")) {
+        //     if(elementLookupTable.hasOwnProperty(this.getColorPalette().copy)) {
+        //         this.setColorPalette(elementLookupTable[this.getColorPalette().copy].getColorPalette());
+        //     }
+        // }
     }
     canHaveChildren() {
         return this.children.length > 0 || this.canAddChildren;
@@ -79,43 +81,17 @@ class Element extends ElementContainer {
             h: h
         };
     }
-    getClipFunction() {
-        if(!this.isHidden()) {
-            let parentClip = this.parent.getClipFunction();
-            let thisInstance = this;
-            return function() {
-                thisInstance.applyTransforms(p);
-                if(thisInstance.images.length > 0) {
-                    thisInstance.getCurrentImage().draw(p, new ImageSettings(undefined, parentClip));
-                }
-                p.resetMatrix();
-            }
-        }
-        return undefined;
-    }
     getColorPalette() {
-        if(this.controls.colors.palette == undefined) {
+        if(this.get("colors", "palette") == undefined) {
             return pack.defaultPalette;
         }
-        return this.controls.colors.palette;
+        return this.get("colors", "palette");
     }
     getCurrentImage() {
         return this.images[this.getImageNumber()];
     }
     getDisplayColor() {
-        if(this.controls.colors.displayTint == "random") {
-            this.setDisplayColor(this.getColorPalette()[Math.floor(Math.random() * this.getColorPalette().length)]);
-            this.saveDisplayColor();
-        }
-        if(this.controls.colors.displayTint instanceof Object) {
-            if(this.controls.colors.displayTint.hasOwnProperty("copy") && elementLookupTable.hasOwnProperty(this.controls.colors.displayTint.copy)) {
-                this.setDisplayColor(elementLookupTable[this.controls.colors.displayTint.copy].getDisplayColor());
-            } else {
-                this.setDisplayColor("white");
-            }
-            this.saveDisplayColor();
-        }
-        return this.controls.colors.displayTint;
+        return this.get("colors");
     }
     getImageNumber() {
         if(this.selectedImage instanceof Object) {
@@ -126,17 +102,35 @@ class Element extends ElementContainer {
         }
         return this.selectedImage;
     }
+    // getParentMask() {
+    //     let parent = this.getFirstElementParent();
+    //     if(parent != undefined) {
+    //         return parent.getMask();
+    //     }
+    //     return undefined;
+    // }
+    // getMask() {
+    //     return this.getCurrentImage().getMask();
+    // }
+    needsNewBuffer() {
+        return this.get("clip") || super.needsNewBuffer();
+    }
+    needsParentBufferSeparate() {
+        return this.get("clip");
+    }
     hasColorPalette() {
-        return this.controls.colors.palette != undefined;
+        return this.get("colors", "palette") != undefined;
     }
     addColorToPalette(color) {
         if(!this.getColorPalette().includes(color)) {
             this.setColorPalette([...this.getColorPalette(), color]);
         }
     }
-    calculateMasks() {
-        
-    }
+    // calculateMask(buffer) {//Could it be faster to have individual methods for transforming the mask? like moving all the pixels to the left etc?
+    //     this.applyTransforms(buffer);
+    //     this.getCurrentImage().calculateMask(buffer);
+    //     buffer.resetMatrix();
+    // }
     createMainButton() {
         const mainButton = document.createElement("button");
         mainButton.classList.add("image");
@@ -159,25 +153,21 @@ class Element extends ElementContainer {
         this.selectedImage ++;
         this.selectedImage = this.selectedImage%this.images.length;
     }
-    draw(p) {
-        if(!this.isHidden()) {
-            this.applyTransforms(p);
-            if(this.images.length > 0) {
-                this.getCurrentImage().draw(p, new ImageSettings(this.getDisplayColor(), this.getClipFunction()));
-            }
-            p.resetMatrix();
-            super.draw(p);
+    draw(buffer) {
+        if(this.images.length > 0) {
+            //console.log(`DRAWING ${this.name} ON ${buffer.name}`);
+            this.getCurrentImage().draw(buffer, new ImageSettings().tint(this.getDisplayColor()).recolorMode(this.get("colors", "mode")));
         }
     }
-    drawBoundingBox(p) {
-        this.applyTransforms(p);
-        p.noFill();
-        p.drawingContext.setLineDash([5 + p.sin(p.frameCount/10)*2, 10 - p.sin(p.frameCount/10)*2])
-        p.strokeWeight(3);
-        p.stroke(0);
-        p.rect(0, 0, this.getCurrentImage().getWidth(), this.getCurrentImage().getHeight());
-        p.rect(0, 0, this.getCurrentImage().getWidth()+20, this.getCurrentImage().getHeight()+20);
-        p.resetMatrix();
+    drawBoundingBox(buffer) {
+        this.applyTransforms(buffer);
+        buffer.noFill();
+        buffer.drawingContext.setLineDash([5 + Math.sin(buffer.frameCount/10)*2, 10 - Math.sin(buffer.frameCount/10)*2])
+        buffer.strokeWeight(3);
+        buffer.stroke(0);
+        buffer.rect(0, 0, this.getCurrentImage().getWidth(), this.getCurrentImage().getHeight());
+        buffer.rect(0, 0, this.getCurrentImage().getWidth()+20, this.getCurrentImage().getHeight()+20);
+        buffer.resetMatrix();
     }
     exportJSON() {
         let json = super.exportJSON();
@@ -196,33 +186,39 @@ class Element extends ElementContainer {
         }
     }
     resetDisplayColor() {
-        this.setDisplayColor(this.controls.colors.savedTint);
+        this.getOption("colors").revert();
     }
     saveDisplayColor() {
-        this.controls.colors.savedTint = this.controls.colors.displayTint;
+        this.getOption("colors").save();
     }
     selectImage(layeredImage) {
         if(this.images.includes(layeredImage)) {
             this.selectedImage = this.images.indexOf(layeredImage);
         }
     }
-    setup(p) {
-        if(this.controls.colors.hasOwnProperty("copy")) {
-            if(elementLookupTable.hasOwnProperty(this.controls.colors.copy)) {
-                this.controls.colors = elementLookupTable[this.controls.colors.copy].controls.colors;
-            }
-        }
+    preload(p5) {
+        this.images.forEach(image => image.preload(p5));
+        super.preload(p5);
+    }
+    setup(p5) {
+        // if(this.controls.colors.hasOwnProperty("copy")) {
+        //     if(elementLookupTable.hasOwnProperty(this.controls.colors.copy)) {
+        //         this.controls.colors = elementLookupTable[this.controls.colors.copy].controls.colors;
+        //     }
+        // }
+        this.images.forEach(image => image.setup(p5));
+        //this.calculateMask(buffer);
         console.log("LOADING IMAGES FOR: "+this.name);
-        this.images.forEach(image => {
-            image.load(p);
-        });
-        super.setup(p);
+        super.setup(p5);
     }
     setColorPalette(palette) {
-        this.controls.colors.palette = palette;
+        this.set("colors", "palette", palette);
     }
     setDisplayColor(color) {
-        this.controls.colors.displayTint = color;
+        this.set("colors", color);
+    }
+    toggleClip() {
+        this.get("clip") = !this.get("clip");
     }
     async processJSON(json, refreshNode = false) {
         await super.processJSON(json, false);
@@ -231,20 +227,31 @@ class Element extends ElementContainer {
             const option = json[key];
             if (key == "image") {
                 this.images = [];
-                if(option.hasOwnProperty("variants")) {
+                //let savePixels = this.get("clip") || this.controls.clip.allowEdit;
+                let thumbnail = option.thumbnail || {scale:1,x:0,y:0};
+                if(Object.hasOwn(option, "variants")) {//Multiple variants, most objects will have this
                     option.variants.forEach(variant => {
-                        this.images.push(new LayeredImage(packURL, variant, option.thumbnail));
+                        let options = {source: variant};
+                        options.thumbnail = thumbnail;
+                        this.images.push(new LayeredImage(packURL, options));
                     });
-                } else if(option.hasOwnProperty("variant")) {
-                    this.images.push(new LayeredImage(packURL, option.variant, option.thumbnail));
                 }
-                if(option.hasOwnProperty("folder")) {
-                    let urls = await getDirectory(packURL+option.folder);
-                    console.log("LOADING IMAGE URLS FROM FOLDER: "+option.folder);
-                    urls.forEach(url => {
-                        this.images.push(new LayeredImage("", [url], option.thumbnail));
-                    })
+                if(Object.hasOwn(option, "variant")) {
+                    let options = {source: option.variant};
+                    options.thumbnail = thumbnail;
+                    this.images.push(new LayeredImage(packURL, options));
                 }
+                // if(Object.hasOwn(options, "folder")) {
+                //     let urls = await getDirectory(packURL+option.folder);
+                //     console.log("LOADING IMAGE URLS FROM FOLDER: "+option.folder);
+                //     urls.forEach(url => {
+                //         let imageSettings = {
+                //             variant: option.variant,
+                //             savePixels: savePixels
+                //         };
+                //         this.images.push(new LayeredImage("", [url], option.thumbnail));
+                //     })
+                // }
             }
         }
         if(refreshNode) {
