@@ -70,7 +70,16 @@ class Option {
         let json = {};
         Object.keys(this.properties).forEach(key => {
             if(all || (this.getValue(key) != this.defaultValues[key] && this.shouldSave[key])) {
-                json[key] = this.getValue(key);
+                let val = this.getValue(key);
+                if(typeof val.getJSON == "function") {
+                    if(val.combineJSON) {
+                        Object.assign(json, val.getJSON());
+                    } else {
+                        json[key] = val.getJSON();
+                    }
+                } else {
+                    json[key] = this.getValue(key);
+                }
             }
         });
         return json;
@@ -149,14 +158,22 @@ class Option {
     revert() {
         Object.keys(this.properties).forEach(key => {
             if(this.properties[key] instanceof Object && Object.hasOwn(this.properties[key], "display")) {
-                this.properties[key].display = this.properties[key].saved;
+                if(typeof this.properties[key].saved.getCopy == "function") {
+                    this.properties[key].display = this.properties[key].saved.getCopy();
+                } else {
+                    this.properties[key].display = this.properties[key].saved;
+                }
             }
         });
     }
     save() {
         Object.keys(this.properties).forEach(key => {
             if(this.properties[key] instanceof Object && Object.hasOwn(this.properties[key], "display")) {
-                this.properties[key].saved = this.properties[key].display;
+                if(typeof this.properties[key].display.getCopy == "function") {
+                    this.properties[key].saved = this.properties[key].display.getCopy();
+                } else {
+                    this.properties[key].saved = this.properties[key].display;
+                }
             }
         });
     }
@@ -185,5 +202,41 @@ class Option {
         } else {
             this.properties[property] = value;
         }
+    }
+}
+class TransformOption extends Option {
+    applyJSON(json) {
+        let transformationTypes = ["translation", "rotation", "scale"];
+        transformationTypes.forEach(transformationType => {
+            let capitalized = "allow"+(transformationType[0].toUpperCase() + transformationType.slice(1));
+            if(json.hasOwnProperty(transformationType)) {
+                if(json[transformationType].hasOwnProperty("x") || json[transformationType].hasOwnProperty("r")) {
+                    this.getValue()[transformationType] = json[transformationType];
+                } else {
+                    if(json[transformationType].hasOwnProperty("default")) {
+                        this.getValue()[transformationType] = json[transformationType].default;
+                    }
+                    if(json[transformationType].hasOwnProperty("min")) {
+                        this.getValue()[transformationType+"Min"] = json[transformationType].min;
+                    }
+                    if(json[transformationType].hasOwnProperty("max")) {
+                        this.getValue()[transformationType+"Max"] = json[transformationType].max;
+                    }
+                    if(json[transformationType].hasOwnProperty("increment")) {
+                        this.getValue("increment")[transformationType] = json[transformationType].increment;
+                    }
+                    if(json[transformationType].hasOwnProperty("allowEdit")) {
+                        this.setValue(capitalized, json[transformationType].allowEdit);
+                    }
+                }
+            }
+            if(json.hasOwnProperty(capitalized)) {
+                this.setValue(capitalized, json[capitalized]);
+            }
+        });
+        if(json.hasOwnProperty("allowEdit")) {
+            this.allowEdit = json.allowEdit;
+        }
+        this.save();
     }
 }

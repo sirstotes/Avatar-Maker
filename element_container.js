@@ -12,12 +12,12 @@ class ElementContainer {
         this.collapsed = false;
         this.optionSources = {};
         this.options = {
-            transform: new Option(this, "transform", "assets/move.png")
+            transform: new TransformOption(this, "transform", "assets/move.png")
                 .property("value", new ConstrainedTransform(vec(0, 0)), {split: true})
-                .property("increment", new Transform(vec(1, 1), vec(0.01, 0.01), 1))
-                .property("allowTranslation", true)
-                .property("allowRotation", true)
-                .property("allowScale", true)
+                .property("increment", new Transform(vec(1, 1), vec(0.01, 0.01), 1), {save:false})
+                .property("allowTranslation", true, {save:false})
+                .property("allowRotation", true, {save:false})
+                .property("allowScale", true, {save:false})
                 .click(function(element, button) {
                     hideControls();
                     selectedElement = element;
@@ -370,10 +370,6 @@ class ElementContainer {
         if(!this.base) {
             json.parentName = this.parent.name;
         }
-        let transformJSON = this.get("transform").getJSON();
-        if(Object.keys(transformJSON).length != 0) {//Don't save it if it's just default.
-            json.transform = transformJSON;
-        }
         Object.keys(this.options).forEach(key => {
             if(!this.options[key].isDefault()) {
                 let j = this.options[key].getJSON();
@@ -393,6 +389,10 @@ class ElementContainer {
             collapsible: this.collapsible,
             collapsed: this.collapsed
         };
+        let transformJSON = this.get("transform").getJSON();
+        if(Object.keys(transformJSON).length != 0) {//Don't save it if it's just default.
+            options.transform = transformJSON;
+        }
         Object.keys(this.options).forEach(key => {
             if(this.options[key].allowEdit) {
                 let j = this.options[key].getJSON(true);
@@ -445,30 +445,7 @@ class ElementContainer {
     async processJSON(json, refreshNode = false) {
         for(let i = 0; i < Object.keys(json).length; i ++) {
             let key = Object.keys(json)[i];
-            if (key == "transform") {
-                let transformationTypes = ["translation", "rotation", "scale"];
-                transformationTypes.forEach(transformationType => {
-                    if(json[key].hasOwnProperty(transformationType)) {
-                        if(json[key][transformationType].hasOwnProperty("x") || json[key][transformationType].hasOwnProperty("r")) {
-                            this.get("transform")[transformationType] = json[key][transformationType];
-                        } else {
-                            if(json[key][transformationType].hasOwnProperty("default")) {
-                                this.get("transform")[transformationType] = json[key][transformationType].default;
-                            }
-                            if(json[key][transformationType].hasOwnProperty("min")) {
-                                this.get("transform")[transformationType+"Min"] = json[key][transformationType].min;
-                            }
-                            if(json[key][transformationType].hasOwnProperty("max")) {
-                                this.get("transform")[transformationType+"Max"] = json[key][transformationType].max;
-                            }
-                            if(json[key][transformationType].hasOwnProperty("increment")) {
-                                this.get("transform", "increment")[transformationType] = json[key][transformationType].increment;
-                            }
-                        }
-                    }
-                });
-                this.getOption("transform").save();
-            } else if (key == "children") {
+            if (key == "children") {
                 for(let j = 0; j < json.children.length; j ++) {
                     let child = json.children[j];
                     let newChild;
@@ -498,6 +475,7 @@ class ElementContainer {
                 this[key] = json[key];
             }
         }
+        this.saveOptions();
         if(refreshNode) {
             this.refreshNode();
         }
@@ -546,7 +524,12 @@ class ElementContainer {
         }
     }
     saveDisplayTransform() {
-        this.get("transform").saved = this.get("transform").getCopy();
+        this.getOption("transform").save();
+    }
+    saveOptions() {
+        Object.keys(this.options).forEach(key => {
+            this.options[key].save();
+        });
     }
     set(option, op1, op2) {
         if(op2 == undefined) {

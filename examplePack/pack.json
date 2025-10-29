@@ -5,14 +5,18 @@
     "root": {
         "transform": {
             "translation": {
-                "default": {"x": 400, "y": 475}
+                "default": {"x": 400, "y": 500}
             }
         },
         "children": [
             {
                 "name": "background",
                 "hide": true,
+                "thumbnail": "icons/image.png",
                 "image": {
+                    "thumbnail": {
+                        "scale": 0.25
+                    },
                     "variants": [
                         "background/landscape.jpg",
                         "background/mountain1.jpg",
@@ -26,6 +30,14 @@
             {
                 "name": "Body",
                 "collapsible": true,
+                "transform": {
+                    "allowEdit": true,
+                    "allowRotation": false,
+                    "translation": {
+                        "default": {"x": 0, "y": -25},
+                        "increment": {"x": 10, "y":10}
+                    }
+                },
                 "children": [
                     {
                         "name": "hair",
@@ -102,6 +114,9 @@
                             "scale": false
                         },
                         "transform": {
+                            "allowEdit": true,
+                            "allowRotation": false,
+                            "allowScale": false,
                             "translation": {
                                 "min": {"x": 0, "y":-20},
                                 "max": {"x": 0, "y":20}
@@ -171,6 +186,9 @@
                             "scale": false
                         },
                         "transform": {
+                            "allowEdit": true,
+                            "allowRotation": false,
+                            "allowScale": false,
                             "translation": {
                                 "min": {"x": -10, "y":-20},
                                 "max": {"x": 10, "y":20}
@@ -219,11 +237,10 @@
                     {
                         "name": "nose",
                         "thumbnail": "icons/nose.png",
-                        "moveable": {
-                            "rotation": false,
-                            "scale": false
-                        },
                         "transform": {
+                            "allowEdit": true,
+                            "allowRotation": false,
+                            "allowScale": false,
                             "translation": {
                                 "min": {"x": -5, "y":-20},
                                 "max": {"x": 5, "y":20}
@@ -237,11 +254,10 @@
                     {
                         "name": "mouth",
                         "thumbnail": "icons/lips.png",
-                        "moveable": {
-                            "rotation": false,
-                            "scale": false
-                        },
                         "transform": {
+                            "allowEdit": true,
+                            "allowRotation": false,
+                            "allowScale": false,
                             "translation": {
                                 "min": {"x": -5, "y":-20},
                                 "max": {"x": 5, "y":20}

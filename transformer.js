@@ -43,6 +43,7 @@ class Transform {
 class ConstrainedTransform extends Transform {
     constructor(translation = vec(0, 0), scale = vec(1, 1), rotation = 0) {
         super(translation, scale, rotation);
+        this.combineJSON = true;
     }
     getJSON() {
         const json = super.getJSON();

@@ -90,18 +90,18 @@ function showMovementControls() {
     const controls = document.getElementById("movement_controls");
     controls.hidden = false;
     document.getElementsByClassName("translation").forEach(button => {
-        button.hidden = !selectedElement.controls.moveable.translation;
+        button.hidden = !selectedElement.get("transform", "allowTranslation");
     });
     document.getElementsByClassName("rotation").forEach(button => {
-        button.hidden = !selectedElement.controls.moveable.rotation;
+        button.hidden = !selectedElement.get("transform", "allowRotation");
     });
     document.getElementsByClassName("scale").forEach(button => {
-        button.hidden = !selectedElement.controls.moveable.scale;
+        button.hidden = !selectedElement.get("transform", "allowScale");
     });
 }
 function moveElement(x, y) {
-    if(selectedElement != undefined) {
-        selectedElement.displayTransform.translate(x * selectedElement.incrementTransform.translation.x, y * selectedElement.incrementTransform.translation.y);
+    if(selectedElement != undefined && selectedElement.get("transform", "allowTranslation")) {
+        selectedElement.get("transform").translate(x * selectedElement.get("transform", "increment").translation.x, y * selectedElement.get("transform", "increment").translation.y);
     }
     updateDraw = true;
 }
@@ -111,14 +111,14 @@ function saveCanvas() {
     }
 }
 function scaleElement(x, y) {
-    if(selectedElement != undefined) {
-        selectedElement.displayTransform.addScale(x * selectedElement.incrementTransform.scale.x, y * selectedElement.incrementTransform.scale.x);
+    if(selectedElement != undefined && selectedElement.get("transform", "allowScale")) {
+        selectedElement.get("transform").addScale(x * selectedElement.get("transform", "increment").scale.x, y * selectedElement.get("transform", "increment").scale.x);
     }
     updateDraw = true;
 }
 function rotateElement(r) {
-    if(selectedElement != undefined) {
-        selectedElement.displayTransform.rotate(r * selectedElement.incrementTransform.rotation);
+    if(selectedElement != undefined && selectedElement.get("transform", "allowRotation")) {
+        selectedElement.get("transform").rotate(r * selectedElement.get("transform", "increment").rotation);
     }
     updateDraw = true;
 }
