@@ -10,6 +10,20 @@
         },
         "children": [
             {
+                "name": "background",
+                "hide": true,
+                "image": {
+                    "variants": [
+                        "background/landscape.jpg",
+                        "background/mountain1.jpg",
+                        "background/mountain2.jpg",
+                        "background/river.jpg",
+                        "background/space.jpg",
+                        "background/watercolor.jpg"
+                    ]
+                }
+            },
+            {
                 "name": "Body",
                 "collapsible": true,
                 "children": [
