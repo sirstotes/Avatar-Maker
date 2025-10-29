@@ -181,7 +181,7 @@ function showMakerSelectPopup(element) {
 let packURL = "examplePack/";
 function changeMaker() {
     let value = document.getElementById("maker_url").value;
-    fetch(value+"pack.json").then(result => loadPack(value).then(onLoad))
+    fetch(value+"pack.json").then(result => loadPack(value, true).then(onLoad))
     .catch(error => console.error(error));
 }
 function tryReset(button) {
@@ -191,7 +191,7 @@ function tryReset(button) {
     button.innerHTML = "<img class='icon' src='assets/check.png' style='filter:invert(1);'>";
     button.onclick = function() {
         localStorage.setItem("changes", undefined);
-        loadPack(packURL).then(onLoad);
+        loadPack(packURL, true).then(onLoad);
         refreshTrashedButton();
     }
     if(trashedButton != undefined) {
@@ -327,7 +327,7 @@ function removeSelectedColor() {
 
     selectedElement.removeColorOption(selectedElement.getDisplayColor());
 }
-async function loadPack(url) {
+async function loadPack(url, addElements=false) {
     packURL = url;
     if(p != undefined) {
         p.remove();
@@ -345,6 +345,21 @@ async function loadPack(url) {
     };
     root = new ElementContainer();
     await root.init(json.root, true, true);
+    let transform = root.get("transform");
+    if(transform.translation.x == 0 && transform.translation.y == 0) {
+        transform.translation = {x:json.canvasWidth/2, y:json.canvasHeight/2};
+    }
+    if(addElements && json.hasOwnProperty("addedElements")) {
+        for(let i = 0; i < json.addedElements.length; i ++) {
+            let element = json.addedElements[i];
+            element.removeable = true;
+            if(elementLookupTable.hasOwnProperty(element.name) && elementLookupTable.hasOwnProperty(element.parentName)) {
+                let newElement = await elementLookupTable[element.name].getClone(elementLookupTable[element.name].exportOptions());
+                await newElement.processJSON(element, false);
+                elementLookupTable[element.parentName].addChild(newElement);
+            }
+        }
+    }
     updateDraw = true;
 }
 async function loadChanges(changes) {
@@ -424,11 +439,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
     } else {
         packURL = document.getElementById("maker_url").value;
     }
-    loadPack(packURL).then(onLoad)
+    let changes = localStorage.getItem("changes") != undefined && localStorage.getItem("changes") != "undefined";
+    loadPack(packURL, !changes).then(onLoad)
     .catch(error => {
         console.error(error);
         packURL = document.getElementById("maker_url").value;
-        loadPack(packURL).then(onLoad);
+        loadPack(packURL, !changes).then(onLoad);
     });
 });
 

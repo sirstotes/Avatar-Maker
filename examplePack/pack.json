@@ -3,11 +3,6 @@
     "canvasWidth": 800,
     "canvasHeight": 1000,
     "root": {
-        "transform": {
-            "translation": {
-                "default": {"x": 400, "y": 500}
-            }
-        },
         "children": [
             {
                 "name": "background",

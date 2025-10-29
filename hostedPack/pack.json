@@ -1,0 +1,326 @@
+{
+    "name": "Example Chibi Pack",
+    "canvasWidth": 512,
+    "canvasHeight": 512,
+    "root": {
+        "transform": {
+            "scale": {"x":0.8,"y":0.8}
+        },
+        "children": [
+            {
+                "name": "Body",
+                "collapsible": true,
+                "children": [
+                    {
+                        "name": "hair_bonus",
+                        "hide": {
+                            "value": true,
+                            "allowEdit": true
+                        },
+                        "image": {
+                            "variants": [
+                                "hair_bonus/1.png",
+                                "hair_bonus/2.png",
+                                "hair_bonus/3.png",
+                                "hair_bonus/4.png",
+                                "hair_bonus/5.png"
+                            ]
+                        },
+                        "colors": {
+                            "palette": ["#db592e", "#911714", "#533028", "#b86e40", "#ffd99d", "#292934", "#ffffff", "#969696", "#f7e7cf"],
+                            "default": "random"
+                        }
+                    },
+                    {
+                        "name": "hair_back",
+                        "hide": true,
+                        "image": {
+                            "variants": [
+                                "hair_back/1.png",
+                                "hair_back/2.png",
+                                "hair_back/3.png",
+                                "hair_back/4.png",
+                                "hair_back/5.png",
+                                "hair_back/6.png",
+                                "hair_back/7.png",
+                                "hair_back/8.png",
+                                "hair_back/9.png",
+                                "hair_back/10.png",
+                                "hair_back/11.png",
+                                "hair_back/12.png"
+                            ]
+                        },
+                        "colors": {
+                            "palette": {"copy": "hair_bonus"},
+                            "default": {"copy": "hair_bonus"}
+                        }
+                    },
+                    {
+                        "name": "body",
+                        "image": {
+                            "variant": "body.png"
+                        },
+                        "colors": {
+                            "palette": ["#faebe9", "#f1d5d1", "#e3b3ac", "#d7a398", "#b7887d", "#f8d3bb", "#d4ac91", "#ae917d", "#bf9376", "#7f5c53", "#966a52", "#987f76", "#785757", "#533d3f", "#472d2d", "#714443", "#865758"],
+                            "default": "random"
+                        }
+                    },
+                    {
+                        "name": "hair",
+                        "hide": true,
+                        "image": {
+                            "variants": [
+                                "hair/1.png",
+                                "hair/2.png",
+                                "hair/3.png",
+                                "hair/4.png",
+                                "hair/5.png",
+                                "hair/6.png",
+                                "hair/7.png",
+                                "hair/8.png",
+                                "hair/9.png",
+                                "hair/10.png",
+                                "hair/11.png",
+                                "hair/12.png"
+                            ]
+                        },
+                        "colors": {
+                            "palette": {"copy": "hair_bonus"},
+                            "default": {"copy": "hair_bonus"}
+                        }
+                    },
+                    {
+                        "name": "pupils",
+                        "image": {
+                            "variants": [
+                                "pupils/1.png",
+                                "pupils/2.png",
+                                "pupils/3.png",
+                                "pupils/4.png",
+                                "pupils/5.png",
+                                "pupils/6.png",
+                                "pupils/7.png",
+                                "pupils/8.png",
+                                "pupils/9.png",
+                                "pupils/10.png",
+                                "pupils/11.png",
+                                "pupils/12.png",
+                                "pupils/13.png",
+                                "pupils/14.png",
+                                "pupils/15.png",
+                                "pupils/16.png"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "eyelashes",
+                        "hide": true,
+                        "image": {
+                            "variants": [
+                                "eyelashes/1.png",
+                                "eyelashes/2.png",
+                                "eyelashes/3.png",
+                                "eyelashes/4.png",
+                                "eyelashes/5.png"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "eyebrows",
+                        "hide": true,
+                        "image": {
+                            "variants": [
+                                "eyebrows/1.png",
+                                "eyebrows/2.png",
+                                "eyebrows/3.png",
+                                "eyebrows/4.png",
+                                "eyebrows/5.png"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "beard",
+                        "hide": {
+                            "value": true,
+                            "allowEdit": true
+                        },
+                        "image": {
+                            "variants": [
+                                "beard/1.png",
+                                "beard/2.png",
+                                "beard/3.png",
+                                "beard/4.png",
+                                "beard/5.png"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "mouth",
+                        "image": {
+                            "variants": [
+                                "mouth/1.png",
+                                "mouth/2.png",
+                                "mouth/3.png",
+                                "mouth/4.png",
+                                "mouth/5.png",
+                                "mouth/6.png",
+                                "mouth/7.png",
+                                "mouth/8.png",
+                                "mouth/9.png",
+                                "mouth/10.png",
+                                "mouth/11.png",
+                                "mouth/12.png",
+                                "mouth/13.png",
+                                "mouth/14.png",
+                                "mouth/15.png",
+                                "mouth/16.png",
+                                "mouth/17.png",
+                                "mouth/18.png",
+                                "mouth/19.png",
+                                "mouth/20.png"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "bangs",
+                        "hide": true,
+                        "image": {
+                            "variants": [
+                                "bangs/1.png",
+                                "bangs/2.png",
+                                "bangs/3.png",
+                                "bangs/4.png",
+                                "bangs/5.png",
+                                "bangs/6.png",
+                                "bangs/7.png",
+                                "bangs/8.png",
+                                "bangs/9.png",
+                                "bangs/10.png",
+                                "bangs/11.png",
+                                "bangs/12.png",
+                                "bangs/13.png"
+                            ]
+                        },
+                        "colors": {
+                            "palette": {"copy": "hair_bonus"},
+                            "default": {"copy": "hair_bonus"}
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Clothing",
+                "collapsible": true,
+                "reorderable": true,
+                "addableChildren": [
+                    {
+                        "name": "bottom",
+                        "image": {
+                            "variants": [
+                                "bottom/1.png",
+                                "bottom/2.png",
+                                "bottom/3.png",
+                                "bottom/4.png",
+                                "bottom/5.png",
+                                "bottom/6.png",
+                                "bottom/7.png",
+                                "bottom/8.png"
+                            ]
+                        },
+                        "colors": {
+                            "palette": ["#c32f33", "#db703a", "#fadc71", "#85b84b", "#4ac0b5", "#4ea4db", "#6458c0", "#6458c0", "#eac2d1", "#f0f0f0", "#898989", "#232323"],
+                            "default": "random"
+                        }
+                    },
+                    {
+                        "name": "dress",
+                        "image": {
+                            "variants": [
+                                "dress/1.png",
+                                "dress/2.png",
+                                "dress/3.png",
+                                "dress/4.png",
+                                "dress/5.png",
+                                "dress/6.png",
+                                "dress/7.png"
+                            ]
+                        },
+                        "colors": {
+                            "palette": {"copy": "bottom"},
+                            "default": "random"
+                        }
+                    },
+                    {
+                        "name": "gloves",
+                        "image": {
+                            "variants": [
+                                "gloves/1.png",
+                                "gloves/2.png",
+                                "gloves/3.png",
+                                "gloves/4.png",
+                                "gloves/5.png",
+                                "gloves/6.png"
+                            ]
+                        },
+                        "colors": {
+                            "palette": {"copy": "bottom"},
+                            "default": "random"
+                        }
+                    },
+                    {
+                        "name": "shoes",
+                        "image": {
+                            "variants": [
+                                "shoes/1.png",
+                                "shoes/2.png",
+                                "shoes/3.png",
+                                "shoes/4.png"
+                            ]
+                        },
+                        "colors": {
+                            "palette": {"copy": "bottom"},
+                            "default": "random"
+                        }
+                    },
+                    {
+                        "name": "top",
+                        "image": {
+                            "variants": [
+                                "top/1.png",
+                                "top/2.png",
+                                "top/3.png",
+                                "top/4.png",
+                                "top/5.png",
+                                "top/6.png",
+                                "top/7.png",
+                                "top/8.png",
+                                "top/9.png",
+                                "top/10.png",
+                                "top/11.png",
+                                "top/12.png"
+                            ]
+                        },
+                        "colors": {
+                            "palette": {"copy": "bottom"},
+                            "default": "random"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "addedElements": [
+        {
+            "name":"bottom",
+            "parentName":"Clothing",
+            "colors":{"value":"#4ea4db"},
+            "selectedImage":0
+        },
+        {
+            "name":"top",
+            "parentName":"Clothing",
+            "colors":{"value":"f0f0f0"},
+            "selectedImage":0
+        }
+    ]
+}
