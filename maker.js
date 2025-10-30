@@ -106,8 +106,8 @@ function moveElement(x, y) {
     updateDraw = true;
 }
 function saveCanvas() {
-    if(p != undefined && pack != undefined) {
-        p.saveCanvas(pack.name, "png");
+    if(sketchInstance != undefined && currentPack != undefined) {
+        sketchInstance.saveCanvas(currentPack.name, "png");
     }
 }
 function scaleElement(x, y) {
@@ -178,11 +178,29 @@ function showMakerSelectPopup(element) {
     document.getElementById("popup").style = "";
     document.getElementById("maker_select").hidden = false;
 }
-let packURL = "examplePack/";
-function changeMaker() {
-    let value = document.getElementById("maker_url").value;
-    fetch(value+"pack.json").then(result => loadPack(value, true).then(onLoad))
-    .catch(error => console.error(error));
+function showPackConfirmationPopup(pack) {
+    document.getElementById("popup").style = "";
+    document.getElementById("pack_confirmation").hidden = false;
+    document.getElementById("pack_confirmation_name").innerHTML = pack.name;
+    document.getElementById("pack_confirmation_description").innerHTML = pack.description;
+    document.getElementById("pack_confirmation_img").src = pack.URL + pack.icon;
+    document.getElementById("pack_confirmation_button").onclick = function() {
+        hidePopups();
+        applyPack(pack, true).then(onLoad);
+    };
+}
+async function tryLoadPack() {
+    let url = document.getElementById("maker_url").value;
+    console.log("FETCHING NEW PACK");
+    fetch(url+"pack.json").then(result => {
+        localStorage.setItem("changes", "undefined");
+        getPackJSON(url).then(pack => showPackConfirmationPopup(pack));
+    })
+    .catch(error => {
+        console.log("ERROR FETCHING PACK:");
+        //ERROR LOADING PACK POPUP
+        console.error(error)
+    });
 }
 function tryReset(button) {
     button.style = "background-color:red;";
@@ -190,9 +208,11 @@ function tryReset(button) {
     button.defaultOnclick = button.onclick;
     button.innerHTML = "<img class='icon' src='assets/check.png' style='filter:invert(1);'>";
     button.onclick = function() {
-        localStorage.setItem("changes", undefined);
-        loadPack(packURL, true).then(onLoad);
-        refreshTrashedButton();
+        if(currentPack != undefined) {
+            localStorage.setItem("changes", undefined);
+            applyPack(currentPack, true).then(onLoad);
+            refreshTrashedButton();
+        }
     }
     if(trashedButton != undefined) {
         refreshTrashedButton();
@@ -271,6 +291,7 @@ function hidePopups() {
     document.getElementById("element_select").hidden = true;
     document.getElementById("element_export").hidden = true;
     document.getElementById("maker_select").hidden = true;
+    document.getElementById("pack_confirmation").hidden = true;
 }
 function hideControls(clear = true) {
     document.getElementById("color_controls").hidden = true;
@@ -327,29 +348,33 @@ function removeSelectedColor() {
 
     selectedElement.removeColorOption(selectedElement.getDisplayColor());
 }
-async function loadPack(url, addElements=false) {
-    packURL = url;
-    if(p != undefined) {
-        p.remove();
+async function getPackJSON(url) {
+    console.log("LOADING PACK: "+url);
+    let response = await fetch(url+"pack.json");
+    let json = await response.json();
+    json.URL = url;
+    return json;
+}
+async function applyPack(json, addDefaultElements=false) {
+    console.log("APPLYING PACK: "+json.name, json.URL);
+    if(sketchInstance != undefined) {
+        sketchInstance.remove();
     }
     elementLookupTable = {};
     addedElements = [];
     document.getElementById("canvas_container").innerHTML = "";
     document.getElementById("elements").innerHTML = "";
-    let json = await fetch(url+"pack.json").then((response) => response.json());
-    pack = {
-        name: json.name,
-        canvasWidth: json.canvasWidth,
-        canvasHeight: json.canvasHeight,
-        defaultPalette: json.defaultPalette || ["white", "black", "tan", "brown", "red", "orange", "yellow", "green", "blue", "purple"]
-    };
+    currentPack = json;
+    if(currentPack.defaultPalette == undefined) {
+        currentPack.defaultPalette = ["white", "black", "tan", "brown", "red", "orange", "yellow", "green", "blue", "purple"];
+    }
     root = new ElementContainer();
     await root.init(json.root, true, true);
     let transform = root.get("transform");
     if(transform.translation.x == 0 && transform.translation.y == 0) {
         transform.translation = {x:json.canvasWidth/2, y:json.canvasHeight/2};
     }
-    if(addElements && json.hasOwnProperty("addedElements")) {
+    if(addDefaultElements && json.hasOwnProperty("addedElements")) {
         for(let i = 0; i < json.addedElements.length; i ++) {
             let element = json.addedElements[i];
             element.removeable = true;
@@ -420,10 +445,10 @@ function copyChanges(button) {
     }, 1000);
 }
 function downloadChanges() {
-    p.save(getJSON(), "exported.json");
+    sketchInstance.save(getJSON(), "exported.json");
 }
 function saveChangesToLocalStorage() {
-    localStorage.setItem("packURL", packURL);
+    localStorage.setItem("packURL", currentPack.URL);
     localStorage.setItem("changes", JSON.stringify(getJSON()));
 }
 
@@ -434,17 +459,20 @@ document.addEventListener("click", function(event) {
 });
 
 document.addEventListener("DOMContentLoaded", function(event) {
-    if(localStorage.getItem("packURL") != undefined) {
-        packURL = localStorage.getItem("packURL");
-    } else {
-        packURL = document.getElementById("maker_url").value;
+    let baseURL = "examplePack/";
+    if(localStorage.getItem("packURL") != "undefined") {
+        baseURL = localStorage.getItem("packURL");
     }
+    console.log("FETCHING PACK: "+baseURL);
     let changes = localStorage.getItem("changes") != undefined && localStorage.getItem("changes") != "undefined";
-    loadPack(packURL, !changes).then(onLoad)
+    fetch(baseURL+"pack.json").then(result => {
+        getPackJSON(baseURL).then(pack => applyPack(pack, !changes).then(onLoad));
+    })
     .catch(error => {
-        console.error(error);
-        packURL = document.getElementById("maker_url").value;
-        loadPack(packURL, !changes).then(onLoad);
+        console.log("ERROR LOADING.", error);
+        console.log("LOADING DEFAULT INSTEAD");
+        getPackJSON("examplePack/").then(pack => {
+            applyPack(pack, !changes).then(onLoad)});
     });
 });
 
@@ -453,8 +481,8 @@ window.addEventListener("beforeunload", function(e){
 });
 
 let buffers;
-let p;
-let pack;
+let sketchInstance;
+let currentPack;
 let root;
 let maskBuffer;
 let elementLookupTable = {};
@@ -462,22 +490,23 @@ let addedElements = [];
 let updateDraw = true;
 
 async function onLoad() {
-    if(localStorage.getItem("changes") != undefined && localStorage.getItem("changes") != "undefined") {
+    if(localStorage.getItem("changes") != "undefined" && localStorage.getItem("packURL") == currentPack.URL) {
         await loadChanges(localStorage.getItem("changes"));
     }
     root.addNodesTo(document.getElementById("elements"));
-    p = new p5(p => {
+    document.getElementById("canvas_container").style = `aspect-ratio:${currentPack.canvasWidth}/${currentPack.canvasHeight};`;
+    sketchInstance = new p5(p => {
         p.preload = function() {
             root.preload(p);
         }
         p.setup = function() {
-            let c = p.createCanvas(pack.canvasWidth, pack.canvasHeight);
+            let c = p.createCanvas(currentPack.canvasWidth, currentPack.canvasHeight);
             c.removeAttribute("style");
             c.parent('canvas_container');
-            buffers = new Buffers(p, pack.canvasWidth, pack.canvasHeight);
+            buffers = new Buffers(p, currentPack.canvasWidth, currentPack.canvasHeight);
             root.setup(p);
             document.getElementsByClassName("controls_container").forEach(element => {
-                element.style = `aspect-ratio:${pack.canvasWidth}/${pack.canvasHeight};`;
+                element.style = `aspect-ratio:${currentPack.canvasWidth}/${currentPack.canvasHeight};`;
             });
             updateDraw = true;
         }

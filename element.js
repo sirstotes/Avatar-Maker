@@ -83,7 +83,7 @@ class Element extends ElementContainer {
     }
     getColorPalette() {
         if(this.get("colors", "palette") == undefined) {
-            return pack.defaultPalette;
+            return currentPack.defaultPalette;
         }
         return this.get("colors", "palette");
     }
@@ -123,7 +123,7 @@ class Element extends ElementContainer {
     }
     addColorToPalette(color) {
         if(!this.getColorPalette().includes(color)) {
-            this.setColorPalette([...this.getColorPalette(), color]);
+            this.getColorPalette().push(color);
         }
     }
     // calculateMask(buffer) {//Could it be faster to have individual methods for transforming the mask? like moving all the pixels to the left etc?
@@ -137,7 +137,11 @@ class Element extends ElementContainer {
         if(this.thumbnail == undefined) {
              mainButton.innerHTML = "<img src='assets/category.png'>";
         } else {
-            mainButton.innerHTML = "<img src='"+packURL+this.thumbnail+"'>";
+            if(this.thumbnail.split("/")[0] == "default_icons") {
+                mainButton.innerHTML = "<img src='assets/"+this.thumbnail+"'>";
+            } else {
+                mainButton.innerHTML = "<img src='"+currentPack.URL+this.thumbnail+"'>";
+            }
         }
         
         const emnt = this;
@@ -233,16 +237,16 @@ class Element extends ElementContainer {
                     option.variants.forEach(variant => {
                         let options = {source: variant};
                         options.thumbnail = thumbnail;
-                        this.images.push(new LayeredImage(packURL, options));
+                        this.images.push(new LayeredImage(currentPack.URL, options));
                     });
                 }
                 if(Object.hasOwn(option, "variant")) {
                     let options = {source: option.variant};
                     options.thumbnail = thumbnail;
-                    this.images.push(new LayeredImage(packURL, options));
+                    this.images.push(new LayeredImage(currentPack.URL, options));
                 }
                 // if(Object.hasOwn(options, "folder")) {
-                //     let urls = await getDirectory(packURL+option.folder);
+                //     let urls = await getDirectory(currentPack.URL+option.folder);
                 //     console.log("LOADING IMAGE URLS FROM FOLDER: "+option.folder);
                 //     urls.forEach(url => {
                 //         let imageSettings = {

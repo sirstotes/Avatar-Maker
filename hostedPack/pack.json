@@ -1,5 +1,7 @@
 {
     "name": "Example Chibi Pack",
+    "description": "Chibi assets created by MaelleMarylloup on itch.io",
+    "icon": "pack.png",
     "canvasWidth": 512,
     "canvasHeight": 512,
     "root": {
@@ -12,29 +14,11 @@
                 "collapsible": true,
                 "children": [
                     {
-                        "name": "hair_bonus",
-                        "hide": {
-                            "value": true,
-                            "allowEdit": true
-                        },
-                        "image": {
-                            "variants": [
-                                "hair_bonus/1.png",
-                                "hair_bonus/2.png",
-                                "hair_bonus/3.png",
-                                "hair_bonus/4.png",
-                                "hair_bonus/5.png"
-                            ]
-                        },
-                        "colors": {
-                            "palette": ["#db592e", "#911714", "#533028", "#b86e40", "#ffd99d", "#292934", "#ffffff", "#969696", "#f7e7cf"],
-                            "default": "random"
-                        }
-                    },
-                    {
                         "name": "hair_back",
                         "hide": true,
+                        "thumbnail": "default_icons/hair.png",
                         "image": {
+                            "thumbnail": {"x": 0, "y": 0, "scale": 0.5},
                             "variants": [
                                 "hair_back/1.png",
                                 "hair_back/2.png",
@@ -51,12 +35,36 @@
                             ]
                         },
                         "colors": {
-                            "palette": {"copy": "hair_bonus"},
-                            "default": {"copy": "hair_bonus"}
+                            "palette": ["#db592e", "#911714", "#533028", "#b86e40", "#ffd99d", "#292934", "#ffffff", "#969696", "#f7e7cf"],
+                            "default": "random"
+                        }
+                    },
+                    
+                    {
+                        "name": "hair_bonus",
+                        "thumbnail": "default_icons/hair.png",
+                        "hide": {
+                            "value": true,
+                            "allowEdit": true
+                        },
+                        "image": {
+                            "thumbnail": {"x": 50, "y": 25, "scale": 0.5},
+                            "variants": [
+                                "hair_bonus/1.png",
+                                "hair_bonus/2.png",
+                                "hair_bonus/3.png",
+                                "hair_bonus/4.png",
+                                "hair_bonus/5.png"
+                            ]
+                        },
+                        "colors": {
+                            "palette": {"copy": "hair_back"},
+                            "default": {"copy": "hair_back"}
                         }
                     },
                     {
                         "name": "body",
+                        "thumbnail": "default_icons/abs.png",
                         "image": {
                             "variant": "body.png"
                         },
@@ -67,8 +75,10 @@
                     },
                     {
                         "name": "hair",
+                        "thumbnail": "default_icons/hair.png",
                         "hide": true,
                         "image": {
+                            "thumbnail": {"x": 0, "y": 100, "scale": 0.5},
                             "variants": [
                                 "hair/1.png",
                                 "hair/2.png",
@@ -85,13 +95,15 @@
                             ]
                         },
                         "colors": {
-                            "palette": {"copy": "hair_bonus"},
-                            "default": {"copy": "hair_bonus"}
+                            "palette": {"copy": "hair_back"},
+                            "default": {"copy": "hair_back"}
                         }
                     },
                     {
                         "name": "pupils",
+                        "thumbnail": "default_icons/eye.png",
                         "image": {
+                            "thumbnail": {"x": -30, "y": 50, "scale": 1},
                             "variants": [
                                 "pupils/1.png",
                                 "pupils/2.png",
@@ -114,8 +126,10 @@
                     },
                     {
                         "name": "eyelashes",
+                        "thumbnail": "default_icons/eyelash.png",
                         "hide": true,
                         "image": {
+                            "thumbnail": {"x": -30, "y": 50, "scale": 1},
                             "variants": [
                                 "eyelashes/1.png",
                                 "eyelashes/2.png",
@@ -127,8 +141,10 @@
                     },
                     {
                         "name": "eyebrows",
+                        "thumbnail": "default_icons/eye.png",
                         "hide": true,
                         "image": {
+                            "thumbnail": {"x": -30, "y": 50, "scale": 1},
                             "variants": [
                                 "eyebrows/1.png",
                                 "eyebrows/2.png",
@@ -140,11 +156,13 @@
                     },
                     {
                         "name": "beard",
+                        "thumbnail": "default_icons/lips.png",
                         "hide": {
                             "value": true,
                             "allowEdit": true
                         },
                         "image": {
+                            "thumbnail": {"x": -30, "y": 0, "scale": 1},
                             "variants": [
                                 "beard/1.png",
                                 "beard/2.png",
@@ -156,7 +174,9 @@
                     },
                     {
                         "name": "mouth",
+                        "thumbnail": "default_icons/lips.png",
                         "image": {
+                            "thumbnail": {"x": -40, "y": 0, "scale": 2},
                             "variants": [
                                 "mouth/1.png",
                                 "mouth/2.png",
@@ -183,8 +203,10 @@
                     },
                     {
                         "name": "bangs",
+                        "thumbnail": "default_icons/hair.png",
                         "hide": true,
                         "image": {
+                            "thumbnail": {"x": 0, "y": 100, "scale": 0.5},
                             "variants": [
                                 "bangs/1.png",
                                 "bangs/2.png",
@@ -202,8 +224,8 @@
                             ]
                         },
                         "colors": {
-                            "palette": {"copy": "hair_bonus"},
-                            "default": {"copy": "hair_bonus"}
+                            "palette": {"copy": "hair_back"},
+                            "default": {"copy": "hair_back"}
                         }
                     }
                 ]
@@ -215,7 +237,9 @@
                 "addableChildren": [
                     {
                         "name": "bottom",
+                        "thumbnail": "default_icons/pants.png",
                         "image": {
+                            "thumbnail": {"x": 0, "y": -175, "scale": 0.75},
                             "variants": [
                                 "bottom/1.png",
                                 "bottom/2.png",
@@ -228,16 +252,18 @@
                             ]
                         },
                         "colors": {
-                            "palette": ["#c32f33", "#db703a", "#fadc71", "#85b84b", "#4ac0b5", "#4ea4db", "#6458c0", "#6458c0", "#eac2d1", "#f0f0f0", "#898989", "#232323"],
+                            "palette": ["#c32f33", "#db703a", "#fadc71", "#85b84b", "#4ac0b5", "#4ea4db", "#6458c0", "#eac2d1", "#f0f0f0", "#898989", "#232323"],
                             "default": "random"
                         }
                     },
                     {
                         "name": "dress",
+                        "thumbnail": "default_icons/dress.png",
                         "image": {
+                            "thumbnail": {"x": 0, "y": -125, "scale": 0.75},
                             "variants": [
-                                "dress/1.png",
                                 "dress/2.png",
+                                "dress/1.png",
                                 "dress/3.png",
                                 "dress/4.png",
                                 "dress/5.png",
@@ -253,12 +279,13 @@
                     {
                         "name": "gloves",
                         "image": {
+                            "thumbnail": {"x": 0, "y": -100, "scale": 0.75},
                             "variants": [
+                                "gloves/5.png",
                                 "gloves/1.png",
                                 "gloves/2.png",
                                 "gloves/3.png",
                                 "gloves/4.png",
-                                "gloves/5.png",
                                 "gloves/6.png"
                             ]
                         },
@@ -269,10 +296,12 @@
                     },
                     {
                         "name": "shoes",
+                        "thumbnail": "default_icons/shoes.png",
                         "image": {
+                            "thumbnail": {"x": 0, "y": -250, "scale": 1},
                             "variants": [
-                                "shoes/1.png",
                                 "shoes/2.png",
+                                "shoes/1.png",
                                 "shoes/3.png",
                                 "shoes/4.png"
                             ]
@@ -284,7 +313,9 @@
                     },
                     {
                         "name": "top",
+                        "thumbnail": "default_icons/shirt.png",
                         "image": {
+                            "thumbnail": {"x": 0, "y": -55, "scale": 1},
                             "variants": [
                                 "top/1.png",
                                 "top/2.png",

@@ -78,8 +78,18 @@
                 <button class="extrude" onclick="hidePopups();" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
             </div>
             <div id="maker_select" hidden="true">
-                <input id="maker_url" size="100" type="text" value="examplePack/">
-                <button class="extrude" onclick="changeMaker();hidePopups();" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+                <h2>Pack Load</h2>
+                <p>Provide a pack URL in the area below. Example urls include "examplePack/" and "https://open-avi-chibi-pack.netlify.app/"</p>
+                <p>WARNING: All current changes will be deleted.</p>
+                <input id="maker_url" type="text" value="https://open-avi-chibi-pack.netlify.app/">
+                <button class="extrude" onclick="tryLoadPack();hidePopups();" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+                <button class="extrude" onclick="hidePopups();" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
+            </div>
+            <div id="pack_confirmation" hidden="true">
+                <h2 id="pack_confirmation_name">Pack Name</h2>
+                <img id="pack_confirmation_img">
+                <p id="pack_confirmation_description">Pack description</p>
+                <button id="pack_confirmation_button" class="extrude" onclick="" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
                 <button class="extrude" onclick="hidePopups();" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
             </div>
         </div>

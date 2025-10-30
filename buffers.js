@@ -44,9 +44,9 @@ class Buffers {
     addBuffer() {
         let buffer = this.p5.createGraphics(this.width, this.height);
         buffer.name = "Buffer "+this.buffers.length;
-        buffer.angleMode(p.DEGREES);
-        buffer.imageMode(p.CENTER);
-        buffer.rectMode(p.CENTER);
+        buffer.angleMode(buffer.DEGREES);
+        buffer.imageMode(buffer.CENTER);
+        buffer.rectMode(buffer.CENTER);
         buffer.drawingContext.willReadFrequently = true;
         this.buffers.push(buffer);
     }

@@ -1,5 +1,7 @@
 {
     "name": "Example Pack",
+    "description": "Example pack with doll assets made by MaelleMarylloup on Itch.io",
+    "icon": "pack.png",
     "canvasWidth": 800,
     "canvasHeight": 1000,
     "root": {
@@ -7,7 +9,7 @@
             {
                 "name": "background",
                 "hide": true,
-                "thumbnail": "icons/image.png",
+                "thumbnail": "default_icons/image.png",
                 "image": {
                     "thumbnail": {
                         "scale": 0.25
@@ -25,18 +27,10 @@
             {
                 "name": "Body",
                 "collapsible": true,
-                "transform": {
-                    "allowEdit": true,
-                    "allowRotation": false,
-                    "translation": {
-                        "default": {"x": 0, "y": -25},
-                        "increment": {"x": 10, "y":10}
-                    }
-                },
                 "children": [
                     {
                         "name": "hair",
-                        "thumbnail": "icons/hair.png",
+                        "thumbnail": "default_icons/hair.png",
                         "hide": true,
                         "image": {
                             "thumbnail": {"x":0, "y":300, "scale":0.75},
@@ -57,7 +51,7 @@
                     },
                     {
                         "name": "body",
-                        "thumbnail": "icons/abs.png",
+                        "thumbnail": "default_icons/abs.png",
                         "collapsible": true,
                         "collapsed": true,
                         "image": {
@@ -103,7 +97,7 @@
                     },
                     {
                         "name": "ears",
-                        "thumbnail": "icons/ear.png",
+                        "thumbnail": "default_icons/ear.png",
                         "moveable": {
                             "rotation": false,
                             "scale": false
@@ -173,7 +167,7 @@
                     },
                     {
                         "name":"pupils",
-                        "thumbnail": "icons/eye.png",
+                        "thumbnail": "default_icons/eye.png",
                         "collapsible": true,
                         "collapsed": true,
                         "moveable": {
@@ -206,7 +200,7 @@
                         "children": [
                             {
                                 "name": "eyelids",
-                                "thumbnail": "icons/grace.png",
+                                "thumbnail": "default_icons/grace.png",
                                 "image": {
                                     "thumbnail": {"x":0, "y":30, "scale":9},
                                     "variants": ["eyes/1.png", "eyes/2.png", "eyes/3.png"]
@@ -221,7 +215,7 @@
                             {
                                 "name": "eyelashes",
                                 "hide": true,
-                                "thumbnail": "icons/eyelash.png",
+                                "thumbnail": "default_icons/eyelash.png",
                                 "image": {
                                     "thumbnail": {"x":0, "y":30, "scale":9},
                                     "variants": ["eyelashes/1.png", "eyelashes/2.png", "eyelashes/3.png", "eyelashes/4.png", "eyelashes/5.png", "eyelashes/6.png", "eyelashes/7.png"]
@@ -231,7 +225,7 @@
                     },
                     {
                         "name": "nose",
-                        "thumbnail": "icons/nose.png",
+                        "thumbnail": "default_icons/nose.png",
                         "transform": {
                             "allowEdit": true,
                             "allowRotation": false,
@@ -248,7 +242,7 @@
                     },
                     {
                         "name": "mouth",
-                        "thumbnail": "icons/lips.png",
+                        "thumbnail": "default_icons/lips.png",
                         "transform": {
                             "allowEdit": true,
                             "allowRotation": false,
@@ -280,7 +274,7 @@
                     },
                     {
                         "name": "hair_front",
-                        "thumbnail": "icons/hair.png",
+                        "thumbnail": "default_icons/hair.png",
                         "hide": true,
                         "selectedImage": {"copy":"hair"},
                         "image": {
@@ -304,7 +298,7 @@
                     },
                     {
                         "name": "bangs",
-                        "thumbnail": "icons/bangs.png",
+                        "thumbnail": "default_icons/bangs.png",
                         "hide": true,
                         "image": {
                             "thumbnail": {"x":0, "y":300, "scale":0.75},
@@ -335,7 +329,7 @@
                 "addableChildren": [
                     {
                         "name": "pants",
-                        "thumbnail": "icons/pants.png",
+                        "thumbnail": "default_icons/pants.png",
                         "hide": true,
                         "cloneable": true,
                         "selectedImage": 4,
@@ -366,7 +360,7 @@
                     },
                     {
                         "name": "pants2",
-                        "thumbnail": "icons/pants.png",
+                        "thumbnail": "default_icons/pants.png",
                         "hide": true,
                         "cloneable": true,
                         "selectedImage": 4,
@@ -384,7 +378,7 @@
                     },
                     {
                         "name": "shirt",
-                        "thumbnail": "icons/shirt.png",
+                        "thumbnail": "default_icons/shirt.png",
                         "hide": true,
                         "cloneable": true,
                         "selectedImage": 4,
@@ -419,7 +413,7 @@
                     },
                     {
                         "name": "shirt2",
-                        "thumbnail": "icons/shirt.png",
+                        "thumbnail": "default_icons/shirt.png",
                         "hide": true,
                         "cloneable": true,
                         "selectedImage": 0,
@@ -446,7 +440,7 @@
                     },
                     {
                         "name": "shoes",
-                        "thumbnail": "icons/shoes.png",
+                        "thumbnail": "default_icons/shoes.png",
                         "hide": true,
                         "cloneable": true,
                         "selectedImage": 4,
@@ -475,7 +469,7 @@
                     },
                     {
                         "name": "shoes2",
-                        "thumbnail": "icons/shoes.png",
+                        "thumbnail": "default_icons/shoes.png",
                         "hide": true,
                         "cloneable": true,
                         "selectedImage": 6,
@@ -504,7 +498,7 @@
                     },
                     {
                         "name":"jacket",
-                        "thumbnail": "icons/jacket.png",
+                        "thumbnail": "default_icons/jacket.png",
                         "hide": true,
                         "cloneable": true,
                         "image": {
@@ -533,7 +527,7 @@
                     },
                     {
                         "name":"jacket2",
-                        "thumbnail": "icons/jacket.png",
+                        "thumbnail": "default_icons/jacket.png",
                         "hide": true,
                         "cloneable": true,
                         "image": {
@@ -554,7 +548,7 @@
                     },
                     {
                         "name": "dress",
-                        "thumbnail": "icons/dress.png",
+                        "thumbnail": "default_icons/dress.png",
                         "hide": true,
                         "cloneable": true,
                         "selectedImage": 0,
@@ -577,7 +571,7 @@
                     },
                     {
                         "name": "dress2",
-                        "thumbnail": "icons/dress.png",
+                        "thumbnail": "default_icons/dress.png",
                         "hide": true,
                         "cloneable": true,
                         "selectedImage": 0,
@@ -598,7 +592,7 @@
                     },
                     {
                         "name": "earring",
-                        "thumbnail": "icons/earrings.png",
+                        "thumbnail": "default_icons/earrings.png",
                         "hide": true,
                         "cloneable": true,
                         "selectedImage": 1,
@@ -619,7 +613,7 @@
                     },
                     {
                         "name": "bracelet",
-                        "thumbnail": "icons/bracelet.png",
+                        "thumbnail": "default_icons/bracelet.png",
                         "hide": true,
                         "cloneable": true,
                         "horizontalFlip": true,
