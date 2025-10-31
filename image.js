@@ -57,7 +57,7 @@ class ImageLayer {
             if(imageSettings.mode == "tint") {
                 buffer.tint(imageSettings.tintColor);
             } else if(imageSettings.mode == "shift") {
-                buffer.drawingContext.filter = `hue-rotate(${imageSettings.tintColor.h}deg)saturate(${imageSettings.tintColor.s}%)brightness(${imageSettings.tintColor.l}%)`; 
+                buffer.drawingContext.filter = `hue-rotate(${buffer.hue(imageSettings.tintColor)}deg)saturate(${buffer.saturation(imageSettings.tintColor)}%)brightness(${buffer.brightness(imageSettings.tintColor)}%)`; 
                 //buffer.drawingContext.filter = `hue-rotate(0deg)saturate(100%)brightness(100%)`; 
             }
         }

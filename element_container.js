@@ -259,7 +259,7 @@ class ElementContainer {
                 case 1: element.classList.add("singular"); break;
                 case 2: element.classList.add("dual"); break;
                 case 3: element.classList.add("tri"); break;
-                case 4: case 5: break;
+                case 4: case 5: element.classList.add("quad"); break;
                 case 6: case 7: element.classList.add("sept"); break;
                 default: element.classList.add("multi"); break;
             }

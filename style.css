@@ -1,19 +1,27 @@
 :root {
     --background-color: #7194d1;
+    --link-color: #3d67af;
     --div-color: #cbced3;
     --box-shadow-color: rgb(0, 0, 0, 0.25);
     --button-color: #f1f1f1;
+    --mid-dark-color: #999a9e;
     --button-disabled-color: #484c50;
     --button-confirm-color: #157b15;
     --button-cancel-color: #d82121;
     font-family: 'Courier New', Courier, monospace;
+}
+.select-none {
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Standard syntax */
 }
 body {
     background-color: var(--background-color);
     text-align: center;
 }
 a {
-    color: var(--box-shadow-color);
+    color: var(--link-color);
 }
 #workspace {
     display: flex;
@@ -46,8 +54,21 @@ a {
     box-shadow: 0.20px 5px var(--box-shadow-color);
     cursor: pointer;
 }
+#canvas_area {
+    display: flex;
+    flex-direction: column;
+    height:100%;
+}
+#canvas_area > div > button {
+    margin: 0;
+}
 #canvas_container {
+    border-radius: var(--border-radius);
     background-color: var(--button-color);
+    margin: auto;
+}
+#canvas_container > canvas {
+    border-radius: var(--border-radius);
 }
 button, input {
     background-color: var(--button-color);
@@ -68,21 +89,31 @@ button:disabled {
     transition: box-shadow 0.1s;
     transition: transform 0.1s;
     cursor: pointer;
-    box-shadow: 0 0 var(--box-shadow-color);
+    box-shadow: 1px 2px var(--box-shadow-color);
 }
 .extrude:hover:not(:disabled) {
     transform: translateY(-5px);
-    box-shadow: 0 5px var(--box-shadow-color);
+    box-shadow: 1px 5px var(--box-shadow-color);
 }
 #elements {
     display:flex;
     flex-grow:1;
+    overflow: hidden;
 }
 .element > div {
     display:grid;
 }
 .element > .options > .image {
     grid-area: image;
+}
+.element > button, .options > button, .side > button {
+    border-radius: 0;
+}
+.element > .side {
+    display:flex;
+}
+.element > .side > button {
+    flex-grow: 1;
 }
 
 .icon {
@@ -103,22 +134,37 @@ button:disabled {
     margin: auto;
     border-radius: var(--border-radius);
 }
+#bottom_controls {
+    flex-grow:1;
+    display: flex;
+}
+#bottom_controls > button {
+    flex-grow:1;
+}
 input[type="range"] {
     -webkit-appearance: none;
 }
 input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-  border-radius: 50%;
-  cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+  
+    transition: box-shadow 0.1s;
+    transition: transform 0.1s;
+    box-shadow: 1px 2px var(--box-shadow-color);
 }
 input[type="range"]::-moz-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-  border-radius: 50%;
-  cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: translateY(-5px);
+    box-shadow: 1px 5px var(--box-shadow-color);
 }
 
 #popup {
@@ -154,6 +200,14 @@ input[type="range"]::-moz-slider-thumb {
 .next {
     content: var(--next-image);
 }
+div > ::-webkit-scrollbar {
+    width: calc(var(--border-radius)*1.5);
+    height: calc(var(--border-radius)*1.5);
+}
+div > ::-webkit-scrollbar-thumb {
+    border-radius: var(--border-radius);
+    background: var(--mid-dark-color);
+}
 
 @media (min-aspect-ratio: 5/3) {
     #workspace {
@@ -174,8 +228,8 @@ input[type="range"]::-moz-slider-thumb {
         --next-image: url("assets/down.png");
     }
     h1 {
-        margin-top: 1vh;
-        margin-bottom: 0;
+        margin-top: 0;
+        margin-bottom: 1vh;
     }
     h2 {
         font-size: 2em;
@@ -217,6 +271,12 @@ input[type="range"]::-moz-slider-thumb {
     #canvas {
         max-width: 80vh;
     }
+    #canvas_area > div > button {
+        margin-top: 1vh;
+    }
+    #canvas_area > div > button:not(:first-child) {
+        margin-left: 1vh;
+    }
     #canvas_container, #canvas_container > canvas {
         height: 70vh;
     }
@@ -256,11 +316,45 @@ input[type="range"]::-moz-slider-thumb {
         margin-bottom: 0;
         margin-top: 0.8vh;
     }
+    .element > .side {
+        flex-direction: column;
+    }
+    .side > :first-child {
+        margin-top: 0.8vh;
+    }
+    .side > :last-child {
+        margin-bottom: 0;
+    }
     .element.flex > .options {
         display:flex;
     }
     .element.flex > .options > button {
         flex-grow: 1;
+    }
+    .element > :first-child {
+        border-top-left-radius: var(--border-radius);
+        border-bottom-left-radius: var(--border-radius);
+    }
+    .options:first-child > :first-child {
+        border-top-left-radius: var(--border-radius);
+        border-bottom-left-radius: var(--border-radius);
+    }
+    .singular > .options > :last-child,
+    .dual > .options > :nth-child(2), 
+    .tri > .options > :nth-child(2),  
+    .quad > .options > :nth-child(3), 
+    .sept > .options > :nth-child(3), 
+    .multi > .options > :nth-child(3) {
+        border-top-right-radius: var(--border-radius);
+    }
+    .options > :last-child {
+        border-bottom-right-radius: var(--border-radius);
+    }
+    .side > :first-child {
+        border-top-left-radius: var(--border-radius);
+    }
+    .side > :last-child {
+        border-bottom-left-radius: var(--border-radius);
     }
     .element.singular > .options {
         grid-template-areas: 'image';
@@ -285,7 +379,7 @@ input[type="range"]::-moz-slider-thumb {
         'image image . . .';
     }
     .inset_element {
-        padding-left: 2.5vh;
+        padding-left: 1.8vh;
         margin-left: 1.7vh;
         margin-bottom: 1vh;
     }
@@ -309,11 +403,11 @@ input[type="range"]::-moz-slider-thumb {
             width: 50vw;
         }
         button, input {
-            margin: 0.3vh;
-            padding: 0.3vh;
+            margin: 0.4vh;
+            padding: 0.25vh;
         }
         .inset_element {
-            padding-bottom: 3.5vh;
+            padding-bottom: 2.8vh;
             margin-bottom: 1vw;
             margin-right: 1vw;
         }
@@ -359,13 +453,11 @@ input[type="range"]::-moz-slider-thumb {
             width: 10vw;
             height: 10vw;
         }
-        #canvas_container > canvas {
-            width: 88vw;
+        .controls_container, #canvas_container, #canvas_container > canvas {
+            max-width: 88vw;
+            max-height: 50vh;
         }
         #pack_confirmation_img {
-            width: 88vw;
-        }
-        .controls_container {
             width: 88vw;
         }
         button, input {
@@ -373,14 +465,14 @@ input[type="range"]::-moz-slider-thumb {
             padding: 0.5vw;
         }
         .inset_element {
-            padding-bottom: 6.5vw;
+            padding-bottom: 1vw;
             margin-bottom: 1vw;
             margin-right: 1vw;
         }
     }
     h1 {
-        margin-top: 1vw;
-        margin-bottom: 0;
+        margin-top: 0;
+        margin-bottom: 1vw;
     }
     textarea {
         width: 90vw;
@@ -400,7 +492,7 @@ input[type="range"]::-moz-slider-thumb {
         margin-right: 2vw;
         margin-top: 1vw;
         margin-bottom: 1vw;
-        padding: 2vw;
+        padding: 1vw;
     }
     #elements {
         overflow-x: auto;
@@ -417,7 +509,7 @@ input[type="range"]::-moz-slider-thumb {
         border:0.5vw solid var(--button-confirm-color);
     }
     .element {
-        margin-right: 1vw;
+        /* margin-right: 1vw; */
         display:flex;
         flex-direction: column-reverse;
     }
@@ -444,6 +536,31 @@ input[type="range"]::-moz-slider-thumb {
         'image image'
         '. .';
     }
+    .element > :first-child {
+        border-bottom-left-radius: var(--border-radius);
+        border-bottom-right-radius: var(--border-radius);
+    }
+    .side:first-child > :first-child {
+        border-bottom-left-radius: var(--border-radius);
+    }
+    .side:first-child > :last-child {
+        border-bottom-right-radius: var(--border-radius);
+    }
+    .options > :first-child {
+        border-top-left-radius: var(--border-radius);
+        border-top-right-radius: var(--border-radius);
+    }
+    .singular > .options:first-child > :last-child,
+    .dual > .options:first-child > :nth-child(2), 
+    .tri > .options:first-child > :nth-child(2), 
+    .quad > .options:first-child > :nth-child(3), 
+    .sept > .options:first-child > :nth-child(3), 
+    .multi > .options:first-child > :nth-child(3) {
+        border-bottom-left-radius: var(--border-radius);
+    }
+    .options:first-child > :last-child {
+        border-bottom-right-radius: var(--border-radius);
+    }
     /* .element.sept > .options, .element.multi > .options {
         grid-template-areas: 
         'image image image'
@@ -458,5 +575,11 @@ input[type="range"]::-moz-slider-thumb {
     }
     .element_children {
         display:flex;
+    }
+    #canvas_area > div > button {
+        margin-top: 1vw;
+    }
+    #canvas_area > div > button:not(:first-child) {
+        margin-left: 1vw;
     }
 }

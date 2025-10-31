@@ -53,19 +53,25 @@ function showColorPalette() {
     updateDraw = true;
 }
 function getPickedColor() {
-    if(selectedElement.get("colors", "mode") == "tint") {
-        return `hsl(${selectedHSL.h}, ${selectedHSL.s}%, ${selectedHSL.l}%)`;
-    } else {
-        return selectedHSL;
-    }
+    return `hsl(${selectedHSL.h}, ${selectedHSL.s}%, ${selectedHSL.l}%)`;
+}
+function hexR(color) {
+    return Math.floor(sketchInstance.red(color)).toString(16).padStart(2, '0');
+}
+function hexG(color) {
+    return Math.floor(sketchInstance.green(color)).toString(16).padStart(2, '0');
+}
+function hexB(color) {
+    return Math.floor(sketchInstance.blue(color)).toString(16).padStart(2, '0');
 }
 function showColorPicker() {
     if (selectedElement != undefined) {
-        if(selectedElement.get("colors", "mode") == "tint") {
-            selectedHSL = getDisplayColorAsHSL(selectedElement.getDisplayColor());
-        } else {
-            selectedHSL = selectedElement.getDisplayColor();
-        }
+        selectedHSL = {
+            h:sketchInstance.hue(selectedElement.getDisplayColor()),
+            s:sketchInstance.saturation(selectedElement.getDisplayColor()),
+            l:sketchInstance.lightness(selectedElement.getDisplayColor())
+        };
+        document.getElementById("color_preview").value = `#${hexR(selectedElement.getDisplayColor())}${hexG(selectedElement.getDisplayColor())}${hexB(selectedElement.getDisplayColor())}`;
         document.getElementById("color_preview").style = `background-color:${selectedElement.getDisplayColor()};`;
         document.getElementById("color_picker_hue").value = selectedHSL.h;
         document.getElementById("color_picker_saturation").value = selectedHSL.s;
@@ -132,6 +138,11 @@ function rotateElement(r) {
 //         }
 //     });
 // }
+function showPopup(id) {
+    hideControls(true);
+    document.getElementById("popup").style = "";
+    document.getElementById(id).hidden = false;
+}
 function showImageSelectPopup(element) {
     hideControls(true);
     const container = document.getElementById("selectable_elements");
@@ -193,7 +204,7 @@ async function tryLoadPack() {
     let url = document.getElementById("maker_url").value;
     console.log("FETCHING NEW PACK");
     fetch(url+"pack.json").then(result => {
-        localStorage.setItem("changes", "undefined");
+        localStorage.removeItem("changes");
         getPackJSON(url).then(pack => showPackConfirmationPopup(pack));
     })
     .catch(error => {
@@ -223,42 +234,6 @@ function tryReset(button) {
     // document.getElementById("popup").style = "";
     // document.getElementById("confirm_reset").hidden = false;
 }
-function rgbToHsl(r, g, b) {
-    r /= 255;
-    g /= 255;
-    b /= 255;
-
-    let max = Math.max(r, g, b),
-        min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
-
-    if (max === min) {
-        h = s = 0; // achromatic
-    } else {
-        let d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-
-        switch (max) {
-            case r:
-                h = (g - b) / d + (g < b ? 6 : 0);
-                break;
-            case g:
-                h = (b - r) / d + 2;
-                break;
-            case b:
-                h = (r - g) / d + 4;
-                break;
-        }
-        h /= 6;
-    }
-
-    return {h: h * 360, s: s * 100, l: l * 100}; // Return HSL as [degrees, percentage, percentage]
-}
-function getDisplayColorAsHSL(color) {
-    document.getElementById("color_preview").style = `background-color:${color};`;
-    let nums = [...window.getComputedStyle(document.getElementById("color_preview")).getPropertyValue('background-color').matchAll(/(\d+)/g)];
-    return rgbToHsl(nums[0][0], nums[1][0], nums[2][0]);
-}
 function setSliderColors(hsl) {
     let gradient = `background:linear-gradient(to right, hsl(0, ${hsl.s}%, ${hsl.l}%)`;
     for(let i = 10; i < 360; i += 10) {
@@ -269,18 +244,25 @@ function setSliderColors(hsl) {
     document.getElementById("color_picker_saturation").style = `background:linear-gradient(to right, hsl(${hsl.h}, 0%, ${hsl.l}%), hsl(${hsl.h}, 100%, ${hsl.l}%));`;
     document.getElementById("color_picker_lightness").style = `background:linear-gradient(to right, hsl(${hsl.h}, ${hsl.s}%, 0%), hsl(${hsl.h}, ${hsl.s}%, 50%), hsl(${hsl.h}, ${hsl.s}%, 100%));`;
 }
-function updateSelectedColor() {
+function updateSelectedColor(fromTextBox = false) {
     if(selectedElement != undefined) {
-        let h = document.getElementById("color_picker_hue").value;
-        let s = document.getElementById("color_picker_saturation").value;
-        let l = document.getElementById("color_picker_lightness").value;
-        selectedHSL = {h: h, s: s, l: l};
-        let color = `hsl(${selectedHSL.h}, ${selectedHSL.s}%, ${selectedHSL.l}%)`;
-        if(selectedElement.get("colors", "mode") == "tint") {
-            selectedElement.setDisplayColor(color);
+        let color;
+        if(fromTextBox) {
+            color = document.getElementById("color_preview").value;
+            selectedHSL = {
+                h:sketchInstance.hue(color),
+                s:sketchInstance.saturation(color),
+                l:sketchInstance.lightness(color)
+            };
         } else {
-            selectedElement.setDisplayColor(selectedHSL);
+            let h = document.getElementById("color_picker_hue").value;
+            let s = document.getElementById("color_picker_saturation").value;
+            let l = document.getElementById("color_picker_lightness").value;
+            selectedHSL = {h: h, s: s, l: l};
+            color = `hsl(${selectedHSL.h}, ${selectedHSL.s}%, ${selectedHSL.l}%)`;
+            document.getElementById("color_preview").value = `#${hexR(color)}${hexG(color)}${hexB(color)}`;
         }
+        selectedElement.setDisplayColor(color);
         document.getElementById("color_preview").style = `background-color:${color};`;
         setSliderColors(selectedHSL);
     }
@@ -288,10 +270,9 @@ function updateSelectedColor() {
 }
 function hidePopups() {
     document.getElementById("popup").style = "display:none;";
-    document.getElementById("element_select").hidden = true;
-    document.getElementById("element_export").hidden = true;
-    document.getElementById("maker_select").hidden = true;
-    document.getElementById("pack_confirmation").hidden = true;
+    document.getElementById("popup").childNodes.forEach(node => {
+        node.hidden = true;
+    });
 }
 function hideControls(clear = true) {
     document.getElementById("color_controls").hidden = true;
@@ -362,7 +343,7 @@ async function applyPack(json, addDefaultElements=false) {
     }
     elementLookupTable = {};
     addedElements = [];
-    document.getElementById("canvas_container").innerHTML = "";
+    document.getElementById("canvas_container").innerHTML = "<p id='p5_loading' class='loadingclass'>Loading Pack...</p>";
     document.getElementById("elements").innerHTML = "";
     currentPack = json;
     if(currentPack.defaultPalette == undefined) {
@@ -460,11 +441,11 @@ document.addEventListener("click", function(event) {
 
 document.addEventListener("DOMContentLoaded", function(event) {
     let baseURL = "examplePack/";
-    if(localStorage.getItem("packURL") != "undefined") {
+    if(localStorage.getItem("packURL") !== "null") {
         baseURL = localStorage.getItem("packURL");
     }
     console.log("FETCHING PACK: "+baseURL);
-    let changes = localStorage.getItem("changes") != undefined && localStorage.getItem("changes") != "undefined";
+    let changes = localStorage.getItem("changes") !== "null";
     fetch(baseURL+"pack.json").then(result => {
         getPackJSON(baseURL).then(pack => applyPack(pack, !changes).then(onLoad));
     })
@@ -490,7 +471,7 @@ let addedElements = [];
 let updateDraw = true;
 
 async function onLoad() {
-    if(localStorage.getItem("changes") != "undefined" && localStorage.getItem("packURL") == currentPack.URL) {
+    if(localStorage.getItem("changes") !== null && localStorage.getItem("packURL") == currentPack.URL) {
         await loadChanges(localStorage.getItem("changes"));
     }
     root.addNodesTo(document.getElementById("elements"));

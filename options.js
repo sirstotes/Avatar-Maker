@@ -71,7 +71,6 @@ class Option {
         Object.keys(this.properties).forEach(key => {
             if(all || (this.getValue(key) != this.defaultValues[key] && this.shouldSave[key])) {
                 let val = this.getValue(key);
-                console.log(key, val);
                 if(val != undefined && typeof val.getJSON == "function") {
                     if(val.combineJSON) {
                         Object.assign(json, val.getJSON());

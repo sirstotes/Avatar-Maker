@@ -355,7 +355,7 @@
                         },
                         "colors": {
                             "mode": "shift",
-                            "default": {"h": 0, "s": 100, "l": 100}
+                            "default": "#FF0000"
                         }
                     },
                     {
@@ -408,7 +408,7 @@
                         },
                         "colors": {
                             "mode": "shift",
-                            "default": {"h": 0, "s": 100, "l": 100}
+                            "default": "#FF0000"
                         }
                     },
                     {
@@ -464,7 +464,7 @@
                         },
                         "colors": {
                             "mode": "shift",
-                            "default": {"h": 0, "s": 100, "l": 100}
+                            "default": "#FF0000"
                         }
                     },
                     {
@@ -522,7 +522,7 @@
                         },
                         "colors": {
                             "mode": "shift",
-                            "default": {"h": 0, "s": 100, "l": 100}
+                            "default": "#FF0000"
                         }
                     },
                     {
@@ -566,7 +566,7 @@
                         },
                         "colors": {
                             "mode": "shift",
-                            "default": {"h": 0, "s": 100, "l": 100}
+                            "default": "#FF0000"
                         }
                     },
                     {
@@ -608,7 +608,7 @@
                         },
                         "colors": {
                             "mode": "shift",
-                            "default": {"h": 0, "s": 100, "l": 100}
+                            "default": "#FF0000"
                         }
                     },
                     {
@@ -629,7 +629,7 @@
                         },
                         "colors": {
                             "mode": "shift",
-                            "default": {"h": 0, "s": 100, "l": 100}
+                            "default": "#FF0000"
                         }
                     }
                 ]
