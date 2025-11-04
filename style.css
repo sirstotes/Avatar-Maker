@@ -396,10 +396,7 @@ div > ::-webkit-scrollbar-thumb {
         --next-image: url("assets/right.png");
     }
     @media(min-aspect-ratio: 0.6) {
-        #canvas_container, #canvas_container > canvas, #pack_confirmation_img {
-            width: 50vw;
-        }
-        .controls_container {
+        #canvas_container, #canvas_container > canvas, #pack_confirmation_img, .controls_container {
             width: 50vw;
         }
         button, input {
@@ -456,6 +453,9 @@ div > ::-webkit-scrollbar-thumb {
         .controls_container, #canvas_container, #canvas_container > canvas {
             max-width: 88vw;
             max-height: 50vh;
+        }
+        .controls_container {
+            width: 88vw;
         }
         #pack_confirmation_img {
             width: 88vw;
