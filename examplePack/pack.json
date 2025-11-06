@@ -1,6 +1,6 @@
 {
     "name": "Example Pack",
-    "description": "Example pack with doll assets made by MaelleMarylloup on Itch.io",
+    "description": "Example pack with doll assets made by <a target='_blank' href='https://maellemarylloup.itch.io/'>MaelleMarylloup on Itch.io</a>",
     "icon": "pack.png",
     "canvasWidth": 800,
     "canvasHeight": 1000,
@@ -57,10 +57,10 @@
                         "image": {
                             "thumbnail": {"x":0, "y":50, "scale":0.5},
                             "variants": [
-                                ["body/base_body_fem.png", {"source":"underwear/bottom2.webp", "applyTint":false, "afterChildren":true}, {"source":"underwear/top2.webp", "applyTint":false, "afterChildren":true}],
-                                ["body/base_body_fem.png", {"source":"underwear/bottom3.webp", "applyTint":true, "afterChildren":true}, {"source":"underwear/top3.webp", "applyTint":true, "afterChildren":true}],
-                                ["body/base_body_masc.png", {"source":"underwear/bottom2.webp", "applyTint":false, "afterChildren":true}],
-                                ["body/base_body_masc.png", {"source":"underwear/bottom3.webp", "applyTint":true, "afterChildren":true}]
+                                ["body/base_body_fem.png", {"source":"underwear/bottom2.webp", "applyTint":false, "inFront":true}, {"source":"underwear/top2.webp", "applyTint":false, "inFront":true}],
+                                ["body/base_body_fem.png", {"source":"underwear/bottom3.webp", "applyTint":true, "inFront":true}, {"source":"underwear/top3.webp", "applyTint":true, "inFront":true}],
+                                ["body/base_body_masc.png", {"source":"underwear/bottom2.webp", "applyTint":false, "inFront":true}],
+                                ["body/base_body_masc.png", {"source":"underwear/bottom3.webp", "applyTint":true, "inFront":true}]
                             ]
                         },
                         "colors": {
@@ -70,17 +70,19 @@
                         "children": [
                             {
                                 "name": "Overlays",
+                                "reorderable": true,
                                 "children": [],
                                 "addableChildren": [
                                     {
                                         "name": "overlay",
                                         "colors": {
-                                            "default": "random",
-                                            "palette": ["#fbeadf", "#e7bbaa", "#deaa8c", "#cc9475", "#a56b50", "#80513b", "#53301f", "rgb(68, 34, 19)"]
+                                            "palette": ["#fbeadf", "#e7bbaa", "#deaa8c", "#cc9475", "#a56b50", "#80513b", "#53301f", "rgb(68, 34, 19)"],
+                                            "default": "random"
                                         },
-                                        "clonable": true,
+                                        "hide": true,
+                                        "cloneable": true,
                                         "image": {
-                                            "thumbnail": {"x":0, "y":-35, "scale":2.5},
+                                            "thumbnail": {"x":0, "y":50, "scale":0.5},
                                             "variants": [
                                                 "body/cracks.png",
                                                 "body/fit.png",

@@ -143,7 +143,7 @@ function showPopup(id) {
     document.getElementById("popup").style = "";
     document.getElementById(id).hidden = false;
 }
-function showImageSelectPopup(element) {
+function showImageSelectPopup(element, deleteOnCancel=false) {
     hideControls(true);
     const container = document.getElementById("selectable_elements");
     container.innerHTML = "";
@@ -157,6 +157,20 @@ function showImageSelectPopup(element) {
         })));
     });
     //refreshElementSelect();
+
+    if(deleteOnCancel) {
+        document.getElementById("element_select_cancel").onclick = function() {
+            console.log("CANCEL, DELETE");
+            element.removeSelf();
+            clearExtraCanvases();
+            hidePopups();
+            updateDraw = true;
+            document.getElementById("element_select_cancel").onclick = function() {
+                clearExtraCanvases();
+                hidePopups();
+            }
+        };
+    }
 
     document.getElementById("popup").style = "";
     document.getElementById("element_select").hidden = false;
@@ -172,7 +186,7 @@ function showElementSelectPopup(element) {
                 clearExtraCanvases();
                 hidePopups();
                 updateDraw = true;
-                child.cloneTo(element).then(clone => showImageSelectPopup(clone));
+                child.cloneTo(element).then(clone => showImageSelectPopup(clone, true));
             })));
         });
     } else {
@@ -192,7 +206,9 @@ function showMakerSelectPopup(element) {
 function showPackConfirmationPopup(pack) {
     document.getElementById("popup").style = "";
     document.getElementById("pack_confirmation").hidden = false;
-    document.getElementById("pack_confirmation_name").innerHTML = pack.name;
+    document.getElementById("pack_confirmation_name").innerText = pack.name;
+    pack.description.replaceAll("<script>", "<div>");//Pack description can have HTML, but NO SCRIPTS
+    pack.description.replaceAll("</script>", "</div>");
     document.getElementById("pack_confirmation_description").innerHTML = pack.description;
     document.getElementById("pack_confirmation_img").src = pack.URL + pack.icon;
     document.getElementById("pack_confirmation_button").onclick = function() {
@@ -220,7 +236,7 @@ function tryReset(button) {
     button.innerHTML = "<img class='icon' src='assets/check.png' style='filter:invert(1);'>";
     button.onclick = function() {
         if(currentPack != undefined) {
-            localStorage.setItem("changes", undefined);
+            localStorage.removeItem("changes");
             applyPack(currentPack, true).then(onLoad);
             refreshTrashedButton();
         }
@@ -331,6 +347,9 @@ function removeSelectedColor() {
 }
 async function getPackJSON(url) {
     console.log("LOADING PACK: "+url);
+    if(url[-1] != "/") {
+        url += "/";
+    }
     let response = await fetch(url+"pack.json");
     let json = await response.json();
     json.URL = url;
@@ -343,7 +362,7 @@ async function applyPack(json, addDefaultElements=false) {
     }
     elementLookupTable = {};
     addedElements = [];
-    document.getElementById("canvas_container").innerHTML = "<p id='p5_loading' class='loadingclass'>Loading Pack...</p>";
+    document.getElementById("canvas_container").innerHTML = "<p id='p5_loading' class='loadingclass'>Loading Pack Images...</p>";
     document.getElementById("elements").innerHTML = "";
     currentPack = json;
     if(currentPack.defaultPalette == undefined) {
@@ -387,7 +406,7 @@ async function loadChanges(changes) {
         }
         updateDraw = true;
     } catch(error) {
-        console.error(error);
+        console.error("Error when loading changes:", error);
     }
 }
 function getJSON() {
@@ -439,21 +458,39 @@ document.addEventListener("click", function(event) {
     }
 });
 
+let urlParams;
+
 document.addEventListener("DOMContentLoaded", function(event) {
-    let baseURL = "examplePack/";
-    if(localStorage.getItem("packURL") !== "null") {
-        baseURL = localStorage.getItem("packURL");
+    var match,
+        pl     = /\+/g,  // Regex for replacing addition symbol with a space
+        search = /([^&=]+)=?([^&]*)/g,
+        decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+        query  = window.location.search.substring(1);
+  
+    urlParams = {};
+    while (match = search.exec(query))
+       urlParams[decode(match[1])] = decode(match[2]);
+    //https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+    
+    let baseURL = localStorage.getItem("packURL");
+    let changes = localStorage.getItem("changes") !== "null";
+    if(urlParams.p != undefined) {
+        if(baseURL != urlParams.p) {
+            changes = false;
+        }
+        baseURL = urlParams.p;
+    }
+    if(urlParams.pack != undefined) {
+        if(baseURL != urlParams.pack) {
+            changes = false;
+        }
+        baseURL = urlParams.pack;
     }
     console.log("FETCHING PACK: "+baseURL);
-    let changes = localStorage.getItem("changes") !== "null";
-    fetch(baseURL+"pack.json").then(result => {
-        getPackJSON(baseURL).then(pack => applyPack(pack, !changes).then(onLoad));
-    })
-    .catch(error => {
-        console.log("ERROR LOADING.", error);
+    getPackJSON(baseURL).then(pack => applyPack(pack, !changes).then(onLoad)).catch(error => {
+        console.log("Error Loading. Is your pack.json in the directory specified?", error);
         console.log("LOADING DEFAULT INSTEAD");
-        getPackJSON("examplePack/").then(pack => {
-            applyPack(pack, !changes).then(onLoad)});
+        getPackJSON("examplePack/").then(pack => applyPack(pack, !changes).then(onLoad));
     });
 });
 

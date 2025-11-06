@@ -103,23 +103,36 @@ class ImageLayer {
 class LayeredImage {
     constructor(packURL, options) {
         this.layers = [];
+        this.frontLayers = [];
         if(options.source instanceof Array) {
             options.source.forEach(layer => {
                 if (layer instanceof Object) {
-                    this.layers.push(new ImageLayer(packURL, layer));
+                    this.addLayer(new ImageLayer(packURL, layer), layer.inFront);
                 } else {
-                    this.layers.push(new ImageLayer(packURL, {source: layer, applyTint: true}));
+                    this.addLayer(new ImageLayer(packURL, {source: layer}), false);
                 }
             });
         } else if (options.source instanceof Object) {
-            this.layers.push(new ImageLayer(packURL, options.source));
+            this.addLayer(new ImageLayer(packURL, options.source), options.source.inFront);
         } else {
-            this.layers.push(new ImageLayer(packURL, {source: options.source, applyTint: true}));
+            this.addLayer(new ImageLayer(packURL, options), options.inFront);
         }
         this.thumbnail = options.thumbnail;
     }
+    addLayer(imageLayer, inFront) {
+        if(inFront) {
+            this.frontLayers.push(imageLayer);
+        } else {
+            this.layers.push(imageLayer);
+        }
+    }
     draw(buffer, imageSettings) {
         this.layers.forEach(layer => layer.draw(buffer, imageSettings));
+    }
+    drawAfter(buffer, imageSettings) {
+        this.frontLayers.forEach(layer => {
+            layer.draw(buffer, imageSettings)
+        });
     }
     getWidth() {
         if(this.layers != undefined) {
@@ -136,9 +149,11 @@ class LayeredImage {
     onclick() {}
     preload(p5) {
         this.layers.forEach(layer => layer.preload(p5));
+        this.frontLayers.forEach(layer => layer.preload(p5));
     }
     setup(p5) {
         this.layers.forEach(layer => layer.setup(p5));
+        this.frontLayers.forEach(layer => layer.setup(p5));
     }
     getSketch(selected, imageSettings, onclick) {
         let layeredImage = this;
@@ -157,7 +172,7 @@ class LayeredImage {
             }
             p5.draw = function() {
                 p5.background(255);
-                layeredImage.layers.forEach(layer => {
+                [...layeredImage.layers, ...layeredImage.frontLayers].forEach(layer => {
                     p5.push();
                     let w = p5.width * layeredImage.thumbnail.scale;
                     //p5.translate(p5.width*0.5-w*0.5 + layeredImage.thumbnail.x * layeredImage.thumbnail.scale, p5.height*0.5-w*0.5 + layeredImage.thumbnail.y * layeredImage.thumbnail.scale);

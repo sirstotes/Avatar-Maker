@@ -8,7 +8,6 @@ class Element extends ElementContainer {
         this.name = "";
         this.thumbnail = undefined;
         this.images = [];
-        this.afterImages = [];
         this.options.colors = new Option(this, "colors", "assets/color-picker.png")
             .property("mode", "tint")
             .property("palette", undefined, {save:false})
@@ -159,8 +158,12 @@ class Element extends ElementContainer {
     }
     draw(buffer) {
         if(this.images.length > 0) {
-            //console.log(`DRAWING ${this.name} ON ${buffer.name}`);
             this.getCurrentImage().draw(buffer, new ImageSettings().tint(this.getDisplayColor()).recolorMode(this.get("colors", "mode")));
+        }
+    }
+    drawAfter(buffer) {
+        if(this.images.length > 0) {
+            this.getCurrentImage().drawAfter(buffer, new ImageSettings().tint(this.getDisplayColor()).recolorMode(this.get("colors", "mode")));
         }
     }
     drawBoundingBox(buffer) {

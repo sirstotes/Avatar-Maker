@@ -50,7 +50,7 @@ class ElementContainer {
             removeable: new Option(this, "removeable", "assets/delete.png")
                 .requireConfirmation()
                 .click(function(element, button) {
-                    element.parent.removeChild(element);
+                    element.removeSelf();
                     updateDraw = true;
                 }),
             clip: new Option(this, "clip", "assets/mask.png")
@@ -341,6 +341,8 @@ class ElementContainer {
                 } else {
                     buffers.pop();
                 }
+                this.applyTransforms(buffers.getCurrent());
+                this.drawAfter(buffers.getCurrent());
                 buffers.getCurrent().resetMatrix();
             } else {
                 this.applyTransforms(buffers.getCurrent());
@@ -349,15 +351,17 @@ class ElementContainer {
                 this.children.forEach(child => {
                     child.render(buffers);
                 });
+                this.applyTransforms(buffers.getCurrent());
+                this.drawAfter(buffers.getCurrent());
+                buffers.getCurrent().resetMatrix();
             }
         }
     }
     replaceOptionReference(name, newReference) {
         this.options[name] = newReference;
     }
-    draw(buffer) {
-
-    }
+    draw(buffer) {}
+    drawAfter(buffer) {}
     drawBoundingBox(buffer) {
         this.children.forEach(child => {
             child.drawBoundingBox(buffer);
@@ -521,6 +525,13 @@ class ElementContainer {
             }
         } else {
             console.error("Tried to remove a child ("+element.name+") that does not belong to this element ("+this.name+")");
+        }
+    }
+    removeSelf() {
+        if(this.parent != undefined) {
+            this.parent.removeChild(this);
+        } else {
+            console.error("Tried to remove parentless element "+this.name);
         }
     }
     saveDisplayTransform() {
