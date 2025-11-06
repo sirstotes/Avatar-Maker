@@ -67,38 +67,6 @@ class ImageLayer {
             buffer.pop();
         }
     }
-    // drawPixels(canvas, drawFunction, bitMask) {
-    // //It might also be a lot faster to draw the image to a buffer and then just copy the pixels over. I think this is the solution I'm gonna go for.
-    //     let transform = canvas.drawingContext.getTransform();
-    //     //const topLeft = transform.transformPoint(new DOMPointReadOnly(-this.image.width * 0.5, -this.image.height * 0.5));
-    //     //const topRight = transform.transformPoint(new DOMPointReadOnly(this.image.width * 0.5, -this.image.height * 0.5));
-    //     //const bottomLeft = transform.transformPoint(new DOMPointReadOnly(-this.image.width * 0.5, this.image.height * 0.5));
-    //     //const bottomRight = transform.transformPoint(new DOMPointReadOnly(this.image.width * 0.5, this.image.height * 0.5));
-    //     for(let x = 0; x < this.image.width; x += 10) {//TODO: should try not to render every pixel, that's too slow
-    //         for(let y = 0; y < this.image.height; y += 10) {
-    //             //let displayX = x;
-    //             //let displayY = y;
-
-    //             //Transform point according to image transform
-
-    //             //This solution is not correct for rotations and leaves gaps
-    //             //let displayX = canvas.map(x, 0, this.image.width, topLeft.x, bottomRight.x);
-    //             //let displayY = canvas.map(y, 0, this.image.height, topLeft.y, bottomRight.y);
-
-    //             //This solution is correct but too slow
-    //             let f = transform.transformPoint(new DOMPointReadOnly(x - this.image.width * 0.5, y - this.image.height * 0.5));
-    //             let displayX = f.x;
-    //             let displayY = f.y;
-                
-    //             if(displayX < 0 || displayX >= buffer.width || displayY < 0 || displayY >= buffer.height) {
-    //                 continue;
-    //             }
-    //             //drawFunction(displayX, displayY, 0, 0, 0, 255);
-    //             let n = (x + y*this.image.width) * 4;
-    //             drawFunction(displayX, displayY, this.pixels[n], this.pixels[n + 1], this.pixels[n + 2], this.pixels[n + 3]);
-    //         }
-    //     }
-    // }
 }
 class LayeredImage {
     constructor(packURL, options) {

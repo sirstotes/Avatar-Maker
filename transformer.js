@@ -21,9 +21,15 @@ class Transform {
         return json;
     }
     apply(p) {
-        p.translate(this.translation.x, this.translation.y);
-        p.rotate(this.rotation);
-        p.scale(this.scale.x, this.scale.y);
+        if(p instanceof DOMMatrix) {
+            p.rotateSelf(this.rotation);
+            p.scaleSelf(this.scale.x, this.scale.y);
+            p.translateSelf(this.translation.x, this.translation.y);
+        } else {
+            p.rotate(this.rotation);
+            p.scale(this.scale.x, this.scale.y);
+            p.translate(this.translation.x, this.translation.y);
+        }
     }
     translate(x, y) {
         this.translation.x += x;

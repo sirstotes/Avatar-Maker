@@ -180,6 +180,7 @@
                             "allowEdit": true,
                             "allowRotation": false,
                             "allowScale": false,
+                            "origin": {"x": 0, "y":-310},
                             "translation": {
                                 "min": {"x": -10, "y":-20},
                                 "max": {"x": 10, "y":20}
@@ -230,13 +231,13 @@
                         "thumbnail": "default_icons/nose.png",
                         "transform": {
                             "allowEdit": true,
-                            "allowRotation": false,
-                            "allowScale": false,
+                            "origin": {"x": 0, "y":-300},
                             "translation": {
                                 "min": {"x": -5, "y":-20},
                                 "max": {"x": 5, "y":20}
                             }
                         },
+                        "boundingBox": {"x": 0, "y":-300, "w":25, "h":25},
                         "image": {
                             "thumbnail": {"x":0, "y":300, "scale":3},
                             "variants": ["nose/1.png", "nose/2.png", "nose/3.png", "nose/4.png", "nose/5.png", "nose/6.png"]
@@ -248,12 +249,13 @@
                         "transform": {
                             "allowEdit": true,
                             "allowRotation": false,
-                            "allowScale": false,
+                            "origin": {"x": 0, "y":-272},
                             "translation": {
                                 "min": {"x": -5, "y":-20},
                                 "max": {"x": 5, "y":20}
                             }
                         },
+                        "boundingBox": {"x": 0, "y":-272, "w":50, "h":25},
                         "image": {
                             "thumbnail": {"x":0, "y":300, "scale":2},
                             "variants": [

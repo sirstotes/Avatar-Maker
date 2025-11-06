@@ -49,36 +49,15 @@ class Element extends ElementContainer {
             });
         this.selectedImage = 0;
         this.childrenNode = undefined;
+        this.boundingBox = undefined;
         await this.processJSON(json);
         console.log("INITIALIZING ELEMENT: "+(this.name||"unnamed"));
         if(this.name != "") {
             elementLookupTable[this.name] = this;
         }
-
-        // if(this.hasColorPalette() && this.getColorPalette().hasOwnProperty("copy")) {
-        //     if(elementLookupTable.hasOwnProperty(this.getColorPalette().copy)) {
-        //         this.setColorPalette(elementLookupTable[this.getColorPalette().copy].getColorPalette());
-        //     }
-        // }
     }
     canHaveChildren() {
         return this.children.length > 0 || this.canAddChildren;
-    }
-    getBoundingBox() {
-        let translation = this.getGlobalTranslation();
-        let scale = this.getGlobalScale();
-        let w = this.getCurrentImage().getWidth() * scale.x;
-        let h = this.getCurrentImage().getHeight() * scale.y;
-        let x = translation.x;
-        let y = translation.y;
-        x -= w*0.5;
-        y -= h*0.5;
-        return {
-            x: x,
-            y: y,
-            w: w,
-            h: h
-        };
     }
     getColorPalette() {
         if(this.get("colors", "palette") == undefined) {
@@ -100,6 +79,9 @@ class Element extends ElementContainer {
             return 0;
         }
         return this.selectedImage;
+    }
+    isPointInBoundingBox(point) {
+        return true;
     }
     // getParentMask() {
     //     let parent = this.getFirstElementParent();
@@ -161,7 +143,7 @@ class Element extends ElementContainer {
             this.getCurrentImage().draw(buffer, new ImageSettings().tint(this.getDisplayColor()).recolorMode(this.get("colors", "mode")));
         }
     }
-    drawAfter(buffer) {
+    drawAfter(buffer) {//Method called after drawing children
         if(this.images.length > 0) {
             this.getCurrentImage().drawAfter(buffer, new ImageSettings().tint(this.getDisplayColor()).recolorMode(this.get("colors", "mode")));
         }
@@ -169,11 +151,13 @@ class Element extends ElementContainer {
     drawBoundingBox(buffer) {
         this.applyTransforms(buffer);
         buffer.noFill();
-        buffer.drawingContext.setLineDash([5 + Math.sin(buffer.frameCount/10)*2, 10 - Math.sin(buffer.frameCount/10)*2])
+        buffer.drawingContext.setLineDash([2, 6]);
         buffer.strokeWeight(3);
         buffer.stroke(0);
-        buffer.rect(0, 0, this.getCurrentImage().getWidth(), this.getCurrentImage().getHeight());
-        buffer.rect(0, 0, this.getCurrentImage().getWidth()+20, this.getCurrentImage().getHeight()+20);
+        buffer.rect(this.boundingBox.x, this.boundingBox.y, this.boundingBox.w, this.boundingBox.h);
+        let origin = this.get("transform", "origin");
+        buffer.line(origin.x, origin.y-10, origin.x, origin.y+10);
+        buffer.line(origin.x-10, origin.y, origin.x+10, origin.y);
         buffer.resetMatrix();
     }
     exportJSON() {
@@ -204,18 +188,15 @@ class Element extends ElementContainer {
         }
     }
     preload(p5) {
+        console.log("LOADING IMAGES FOR: "+this.name);
         this.images.forEach(image => image.preload(p5));
         super.preload(p5);
     }
     setup(p5) {
-        // if(this.controls.colors.hasOwnProperty("copy")) {
-        //     if(elementLookupTable.hasOwnProperty(this.controls.colors.copy)) {
-        //         this.controls.colors = elementLookupTable[this.controls.colors.copy].controls.colors;
-        //     }
-        // }
         this.images.forEach(image => image.setup(p5));
-        //this.calculateMask(buffer);
-        console.log("LOADING IMAGES FOR: "+this.name);
+        if(this.boundingBox == undefined) {
+            this.boundingBox = {x:0, y:0, w:this.getCurrentImage().getWidth(), h:this.getCurrentImage().getHeight()};
+        }
         super.setup(p5);
     }
     setColorPalette(palette) {
@@ -282,4 +263,19 @@ async function getDirectory(dirname) {
   }
   arr.shift(); // get rid of first result which is the "../" directory reference
   return(arr);
+}
+
+function pointInRect(rect, p) {//https://www.geeksforgeeks.org/dsa/check-whether-given-point-lies-inside-rectangle-not/
+    const n = rect.length;
+    let inside = false;
+    let j = n - 1;
+    for (let i = 0; i < n; i++) {
+        if ((rect[i][1] > p[1]) != (rect[j][1] > p[1])) {
+            if (p[0] < (rect[j][0] - rect[i][0]) * (p[1] - rect[i][1]) / (rect[j][1] - rect[i][1]) + rect[i][0]) {
+                inside = !inside;
+            }
+        }
+        j = i;
+    }
+    return inside;
 }

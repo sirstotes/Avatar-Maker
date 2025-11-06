@@ -205,6 +205,15 @@ class Option {
     }
 }
 class TransformOption extends Option {
+    constructor(element, name, icon) {
+        super(element, name, icon);
+        this.property("value", new ConstrainedTransform(vec(0, 0)), {split: true})
+        .property("origin", vec(0, 0), {save:false})
+        .property("increment", new Transform(vec(1, 1), vec(0.01, 0.01), 1), {save:false})
+        .property("allowTranslation", true, {save:false})
+        .property("allowRotation", true, {save:false})
+        .property("allowScale", true, {save:false});
+    }
     applyJSON(json) {
         let transformationTypes = ["translation", "rotation", "scale"];
         transformationTypes.forEach(transformationType => {
@@ -236,6 +245,9 @@ class TransformOption extends Option {
         });
         if(json.hasOwnProperty("allowEdit")) {
             this.allowEdit = json.allowEdit;
+        }
+        if(json.hasOwnProperty("origin")) {
+            this.setValue("origin", json.origin);
         }
         this.save();
     }

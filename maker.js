@@ -347,7 +347,7 @@ function removeSelectedColor() {
 }
 async function getPackJSON(url) {
     console.log("LOADING PACK: "+url);
-    if(url[-1] != "/") {
+    if(url[url.length-1] != "/") {
         url += "/";
     }
     let response = await fetch(url+"pack.json");
@@ -506,6 +506,8 @@ let maskBuffer;
 let elementLookupTable = {};
 let addedElements = [];
 let updateDraw = true;
+let dragging = false;
+let dragStart = {};
 
 async function onLoad() {
     if(localStorage.getItem("changes") !== null && localStorage.getItem("packURL") == currentPack.URL) {
@@ -518,6 +520,9 @@ async function onLoad() {
             root.preload(p);
         }
         p.setup = function() {
+            p.angleMode(p.DEGREES);
+            p.imageMode(p.CENTER);
+            p.rectMode(p.CENTER);
             let c = p.createCanvas(currentPack.canvasWidth, currentPack.canvasHeight);
             c.removeAttribute("style");
             c.parent('canvas_container');
@@ -533,19 +538,34 @@ async function onLoad() {
                 updateDraw = false;
                 buffers.clear();
                 root.render(buffers);
-                p.clear();
-                p.image(buffers.get(0), 0, 0);
-                if(selectedElement != undefined) {
-                    if(selectedElement.getGlobalTranslation().y > buffers.height*0.75) {
-                        document.getElementsByClassName("controls").forEach(element => {
-                            element.style = "";
-                        });
-                    } else {
-                        document.getElementsByClassName("controls").forEach(element => {
-                            element.style = "bottom:0;";
-                        });
+            }
+            p.clear();
+            p.image(buffers.get(0), p.width/2, p.height/2);
+            if(dragging) {
+                if(!p.mouseIsPressed) {
+                    dragging = false;
+                    //console.log("END DRAG", p.mouseX - dragStart.x, p.mouseY - dragStart.y);
+                }
+            }
+            if(selectedElement == undefined) {
+                p.cursor(p.ARROW);
+            } else {
+                if(selectedElement.getGlobalOrigin().y > buffers.height*0.75) {
+                    document.getElementsByClassName("controls").forEach(element => {
+                        element.style = "";
+                    });
+                } else {
+                    document.getElementsByClassName("controls").forEach(element => {
+                        element.style = "bottom:0;";
+                    });
+                }
+                selectedElement.drawBoundingBox(p);
+                if(selectedElement.isPointInBoundingBox({x: p.mouseX, y:p.mouseY}) && !document.getElementById("movement_controls").hidden) {
+                    if(p.mouseIsPressed && !dragging) {
+                        dragging = true;
+                        dragStart = {x: p.mouseX, y:p.mouseY};
+                        //console.log("START DRAG");
                     }
-                    selectedElement.drawBoundingBox(buffers.get(0));
                 }
             }
         }

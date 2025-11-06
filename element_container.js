@@ -13,11 +13,6 @@ class ElementContainer {
         this.optionSources = {};
         this.options = {
             transform: new TransformOption(this, "transform", "assets/move.png")
-                .property("value", new ConstrainedTransform(vec(0, 0)), {split: true})
-                .property("increment", new Transform(vec(1, 1), vec(0.01, 0.01), 1), {save:false})
-                .property("allowTranslation", true, {save:false})
-                .property("allowRotation", true, {save:false})
-                .property("allowScale", true, {save:false})
                 .click(function(element, button) {
                     hideControls();
                     selectedElement = element;
@@ -81,6 +76,14 @@ class ElementContainer {
     isHidden() {
         return this.get("hide");
     }
+    isPointInBoundingBox(point) {
+        for(child of this.children) {
+            if(child.isPointInBoundingBox(point)) {
+                return true;
+            }
+        }
+        return false;
+    }
     get(option, property=undefined) {
         return this.options[option].getValue(property);
     }
@@ -128,23 +131,15 @@ class ElementContainer {
     //     }
     //     return this.parent.getFirstElementParent();
     // }
-    getGlobalTranslation() {
-        let translation = vec(0, 0);
-        if(this.parent != undefined) {
-            translation = this.parent.getGlobalTranslation();
-        }
-        translation.x += this.get("transform").translation.x;
-        translation.y += this.get("transform").translation.y;
-        return translation;
+    getGlobalOrigin() {
+        return this.get("transform", "origin");
     }
-    getGlobalScale() {
-        let scale = vec(1, 1);
-        if(this.parent != undefined) {
-            scale = this.parent.getGlobalTranslation();
+    getMatrix() {
+        if(this.parent == undefined) {
+            return this.applyTransforms(new DOMMatrix());
+        } else {
+            return this.applyTransforms(this.parent.getMatrix());
         }
-        scale.x *= this.get("transform").scale.x * this.get("Horizontal Flip");
-        scale.y *= this.get("transform").scale.y * this.get("Vertical Flip");
-        return scale;
     }
     // getNextElement() {
     //     if(this.parent == undefined) {
@@ -193,12 +188,22 @@ class ElementContainer {
             node.appendChild(this.childrenNode);
         }
     }
-    applyTransforms(p) {
+    applyTransforms(buffer) {
         if(this.parent != undefined) {
-            this.parent.applyTransforms(p);
+            this.parent.applyTransforms(buffer);
         }
-        this.get("transform").apply(p);
-        p.scale(this.get("horizontalFlip"), this.get("verticalFlip"));
+        let origin = this.get("transform", "origin");
+        if(buffer instanceof DOMMatrix) {
+            buffer.translateSelf(origin.x, origin.y);
+            this.get("transform").apply(buffer);
+            buffer.translateSelf(-origin.x, -origin.y);
+            buffer.scaleSelf(this.get("horizontalFlip"), this.get("verticalFlip"));
+        } else {
+            buffer.translate(origin.x, origin.y);
+            this.get("transform").apply(buffer);
+            buffer.translate(-origin.x, -origin.y);
+            buffer.scale(this.get("horizontalFlip"), this.get("verticalFlip"));
+        }
     }
     async clone() {
         const options = this.exportOptions();
