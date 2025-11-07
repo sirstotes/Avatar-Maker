@@ -33,6 +33,13 @@ a {
     box-shadow: 5px 10px var(--box-shadow-color);
     border-radius: var(--border-radius);
 }
+#welcome {
+    background-color: var(--button-color);
+    box-shadow: 5px 10px var(--box-shadow-color);
+    border-radius: var(--border-radius);
+    margin:auto;
+    text-align: left;
+}
 #controls_position {
     position: relative;
     width: 0;
@@ -297,7 +304,7 @@ div > ::-webkit-scrollbar-thumb {
         width:25vh;
         margin:2vh;
     }
-    #popup > div { 
+    #popup > div, #welcome { 
         max-width: 60vw;
         padding: 5vh;
     }
@@ -502,7 +509,7 @@ div > ::-webkit-scrollbar-thumb {
         width:25vw;
         margin:2vw;
     }
-    #popup > div { 
+    #popup > div, #welcome { 
         padding: 5vw;
     }
     .selected {

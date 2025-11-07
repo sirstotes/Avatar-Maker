@@ -4,6 +4,7 @@
     "icon": "pack.png",
     "canvasWidth": 512,
     "canvasHeight": 512,
+    "defaultPalette": ["#c32f33", "#db703a", "#fadc71", "#85b84b", "#4ac0b5", "#4ea4db", "#6458c0", "#eac2d1", "#f0f0f0", "#898989", "#232323"],
     "root": {
         "transform": {
             "scale": {"x":0.8,"y":0.8}
@@ -43,6 +44,9 @@
                     {
                         "name": "hair_bonus",
                         "thumbnail": "default_icons/hair.png",
+                        "transform": {
+                            "allowEdit": true
+                        },
                         "hide": {
                             "value": true,
                             "allowEdit": true
@@ -104,24 +108,11 @@
                         "thumbnail": "default_icons/eye.png",
                         "image": {
                             "thumbnail": {"x": -30, "y": 50, "scale": 1},
-                            "variants": [
-                                "pupils/1.png",
-                                "pupils/2.png",
-                                "pupils/3.png",
-                                "pupils/4.png",
-                                "pupils/5.png",
-                                "pupils/6.png",
-                                "pupils/7.png",
-                                "pupils/8.png",
-                                "pupils/9.png",
-                                "pupils/10.png",
-                                "pupils/11.png",
-                                "pupils/12.png",
-                                "pupils/13.png",
-                                "pupils/14.png",
-                                "pupils/15.png",
-                                "pupils/16.png"
-                            ]
+                            "variant": "pupils/8.png"
+                        },
+                        "colors": {
+                            "mode": "shift",
+                            "default": "random"
                         }
                     },
                     {
@@ -252,7 +243,6 @@
                             ]
                         },
                         "colors": {
-                            "palette": ["#c32f33", "#db703a", "#fadc71", "#85b84b", "#4ac0b5", "#4ea4db", "#6458c0", "#eac2d1", "#f0f0f0", "#898989", "#232323"],
                             "default": "random"
                         }
                     },
@@ -272,7 +262,6 @@
                             ]
                         },
                         "colors": {
-                            "palette": {"copy": "bottom"},
                             "default": "random"
                         }
                     },
@@ -290,7 +279,6 @@
                             ]
                         },
                         "colors": {
-                            "palette": {"copy": "bottom"},
                             "default": "random"
                         }
                     },
@@ -307,7 +295,6 @@
                             ]
                         },
                         "colors": {
-                            "palette": {"copy": "bottom"},
                             "default": "random"
                         }
                     },
@@ -332,7 +319,6 @@
                             ]
                         },
                         "colors": {
-                            "palette": {"copy": "bottom"},
                             "default": "random"
                         }
                     }
@@ -344,7 +330,7 @@
         {
             "name":"bottom",
             "parentName":"Clothing",
-            "colors":{"value":"#4ea4db"},
+            "colors":{"value":"random"},
             "selectedImage":0
         },
         {
