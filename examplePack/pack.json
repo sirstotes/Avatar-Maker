@@ -224,7 +224,7 @@
                                 "image": {
                                     "default": "random",
                                     "thumbnail": {"x":25, "y":315, "scale":4},
-                                    "variants": ["eyelashes/1.png", "eyelashes/2.png", "eyelashes/3.png", "eyelashes/4.png", "eyelashes/5.png", "eyelashes/6.png", "eyelashes/7.png"]
+                                    "variants": ["eyelashes/1.png", "eyelashes/2.png", "eyelashes/3.png", "eyelashes/4.png", "eyelashes/6.png", "eyelashes/7.png"]
                                 }
                             }
                         ]

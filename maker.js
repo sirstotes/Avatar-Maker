@@ -237,13 +237,17 @@ async function tryLoadPack() {
     let url = document.getElementById("maker_url").value;
     console.log("FETCHING NEW PACK");
     fetch(url+"pack.json").then(result => {
+        document.getElementById("pack_select_button").disabled = true;
         localStorage.removeItem("changes");
-        getPackJSON(url).then(pack => showPackConfirmationPopup(pack));
+        getPackJSON(url).then(pack => showPackConfirmationPopup(pack)).catch(error => {;
+            document.getElementById("pack_select_button").disabled = false;
+        })
     })
     .catch(error => {
         console.log("ERROR FETCHING PACK:");
         //ERROR LOADING PACK POPUP
-        console.error(error)
+        console.error(error);
+        document.getElementById("pack_select_button").disabled = false;
     });
 }
 function tryReset(button) {
@@ -375,7 +379,6 @@ async function applyPack(json, addDefaultElements=false) {
     }
     elementLookupTable = {};
     addedElements = [];
-    document.getElementById("pack_info_button").disabled = false;
     document.getElementById("pack_info_button").onclick = function() {
         showPackConfirmationPopup(json, false);
     }
@@ -511,7 +514,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
     getPackJSON(baseURL).then(pack => applyPack(pack, !changes).then(onLoad)).catch(error => {
         console.log("Error Loading. Is your pack.json in the directory specified?", error);
         console.log("LOADING DEFAULT INSTEAD");
-        getPackJSON("examplePack/").then(pack => applyPack(pack, !changes).then(onLoad));
+        getPackJSON("examplePack/").then(pack => applyPack(pack, !changes).then(onLoad).catch(error => {
+            document.getElementById("pack_select_button").disabled = false;
+        }))
+        .catch(error => {
+            document.getElementById("pack_select_button").disabled = false;
+        });
     });
 });
 
@@ -553,6 +561,11 @@ async function onLoad() {
             });
             updateDraw = true;
             root.addNodesTo(document.getElementById("elements"));
+            document.getElementById("pack_select_button").disabled = false;
+            document.getElementById("pack_save_button").disabled = false;
+            document.getElementById("pack_reset_button").disabled = false;
+            document.getElementById("pack_export_button").disabled = false;
+            document.getElementById("pack_info_button").disabled = false;
         }
         p.draw = function() {
             if(updateDraw) {
@@ -561,7 +574,7 @@ async function onLoad() {
                 root.render(buffers);
             }
             p.clear();
-            p.image(buffers.get(0), p.width/2, p.height/2);
+            p.image(buffers.get(0), currentPack.canvasWidth/2, currentPack.canvasHeight/2);
             if(dragging) {
                 if(!p.mouseIsPressed) {
                     dragging = false;

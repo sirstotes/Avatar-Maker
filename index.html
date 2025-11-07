@@ -53,10 +53,10 @@
                     <div id="canvas_container">
                     </div>
                     <div id="bottom_controls">
-                        <button class="extrude" onclick="showMakerSelectPopup();"><img class="icon" src="assets/package.png"></button>
-                        <button class="extrude" onclick="saveCanvas();"><img class="icon" src="assets/save.png"></button>
-                        <button class="extrude" onclick="tryReset(this);"><img class="icon" src="assets/refresh.png"></button>
-                        <button class="extrude" onclick="showElementExportPopup();"><img class="icon" src="assets/notes.png"></button>
+                        <button id="pack_select_button" class="extrude" onclick="showMakerSelectPopup();" disabled><img class="icon" src="assets/package.png"></button>
+                        <button id="pack_save_button" class="extrude" onclick="saveCanvas();" disabled><img class="icon" src="assets/save.png"></button>
+                        <button id="pack_reset_button" class="extrude" onclick="tryReset(this);" disabled><img class="icon" src="assets/refresh.png"></button>
+                        <button id="pack_export_button" class="extrude" onclick="showElementExportPopup();" disabled><img class="icon" src="assets/notes.png"></button>
                         <button id="pack_info_button" class="extrude" disabled><img class="icon" src="assets/info.png"></button>
                     </div>
                 </div>
@@ -91,7 +91,7 @@
                 <img id="pack_confirmation_img">
                 <p id="pack_confirmation_description">Pack description</p>
                 <button id="pack_confirmation_button" class="extrude" onclick="" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
-                <button class="extrude" onclick="hidePopups();" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
+                <button class="extrude" onclick="hidePopups();document.getElementById('pack_select_button').disabled = false;" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
             </div>
             <div id="explanation" hidden="true" style="text-align: left;background-color: var(--button-color);">
                 <h2>OpenAvi v0.6</h2>
