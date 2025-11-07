@@ -390,10 +390,8 @@ async function applyPack(json, addDefaultElements=false) {
     }
     root = new ElementContainer();
     await root.init(json.root, true, true);
-    let transform = root.get("transform");
-    if(transform.translation.x == 0 && transform.translation.y == 0) {
-        transform.translation = {x:json.canvasWidth/2, y:json.canvasHeight/2};
-    }
+    root.get("transform").translation = {x:json.canvasWidth/2, y:json.canvasHeight/2};
+    root.set("transform", "origin", {x:json.canvasWidth/2, y:json.canvasHeight/2});
     if(addDefaultElements && json.hasOwnProperty("addedElements")) {
         for(let i = 0; i < json.addedElements.length; i ++) {
             let element = json.addedElements[i];
