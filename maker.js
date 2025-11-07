@@ -8,7 +8,7 @@ function cancelButton(button) {
     toggledButton.style = "background-color:red;";
     toggledButton.innerHTML = "<img class='icon' src='assets/cancel.png' style='filter:invert(1);'>";
     toggledButton.onclick = function() {
-        hideControls();
+        hideControls(true, false);
     }
     selectedElement.refreshDisplay();
 }
@@ -92,9 +92,7 @@ function refreshColorPalette() {
     });
     updateDraw = true;
 }
-function showMovementControls() {
-    const controls = document.getElementById("movement_controls");
-    controls.hidden = false;
+function updateMovementControlButtons() {
     document.getElementsByClassName("translation").forEach(button => {
         button.hidden = !selectedElement.get("transform", "allowTranslation");
     });
@@ -104,11 +102,25 @@ function showMovementControls() {
     document.getElementsByClassName("scale").forEach(button => {
         button.hidden = !selectedElement.get("transform", "allowScale");
     });
+    document.getElementById("translate_right").disabled = !selectedElement.canTranslate(1, 0);
+    document.getElementById("translate_left").disabled = !selectedElement.canTranslate(-1, 0);
+    document.getElementById("translate_up").disabled = !selectedElement.canTranslate(0, -1);
+    document.getElementById("translate_down").disabled = !selectedElement.canTranslate(0, 1);
+    document.getElementById("rotate_clockwise").disabled = !selectedElement.canRotate(1);
+    document.getElementById("rotate_counterclockwise").disabled = !selectedElement.canRotate(-1);
+    document.getElementById("scale_up").disabled = !selectedElement.canTranslate(1, 1);
+    document.getElementById("scale_down").disabled = !selectedElement.canTranslate(-1, -1);
+}
+function showMovementControls() {
+    const controls = document.getElementById("movement_controls");
+    controls.hidden = false;
+    updateMovementControlButtons();
 }
 function moveElement(x, y) {
     if(selectedElement != undefined && selectedElement.get("transform", "allowTranslation")) {
         selectedElement.get("transform").translate(x * selectedElement.get("transform", "increment").translation.x, y * selectedElement.get("transform", "increment").translation.y);
     }
+    updateMovementControlButtons();
     updateDraw = true;
 }
 function saveCanvas() {
@@ -120,12 +132,14 @@ function scaleElement(x, y) {
     if(selectedElement != undefined && selectedElement.get("transform", "allowScale")) {
         selectedElement.get("transform").addScale(x * selectedElement.get("transform", "increment").scale.x, y * selectedElement.get("transform", "increment").scale.x);
     }
+    updateMovementControlButtons();
     updateDraw = true;
 }
 function rotateElement(r) {
     if(selectedElement != undefined && selectedElement.get("transform", "allowRotation")) {
         selectedElement.get("transform").rotate(r * selectedElement.get("transform", "increment").rotation);
     }
+    updateMovementControlButtons();
     updateDraw = true;
 }
 // function refreshElementSelect() {
@@ -203,7 +217,7 @@ function showMakerSelectPopup(element) {
     document.getElementById("popup").style = "";
     document.getElementById("maker_select").hidden = false;
 }
-function showPackConfirmationPopup(pack) {
+function showPackConfirmationPopup(pack, apply = true) {
     document.getElementById("popup").style = "";
     document.getElementById("pack_confirmation").hidden = false;
     document.getElementById("pack_confirmation_name").innerText = pack.name;
@@ -211,10 +225,13 @@ function showPackConfirmationPopup(pack) {
     pack.description.replaceAll("</script>", "</div>");
     document.getElementById("pack_confirmation_description").innerHTML = pack.description;
     document.getElementById("pack_confirmation_img").src = pack.URL + pack.icon;
-    document.getElementById("pack_confirmation_button").onclick = function() {
-        hidePopups();
-        applyPack(pack, true).then(onLoad);
-    };
+    document.getElementById("pack_confirmation_button").hidden = !apply;
+    if(apply) {
+        document.getElementById("pack_confirmation_button").onclick = function() {
+            hidePopups();
+            applyPack(pack, true).then(onLoad);
+        };
+    }
 }
 async function tryLoadPack() {
     let url = document.getElementById("maker_url").value;
@@ -290,7 +307,22 @@ function hidePopups() {
         node.hidden = true;
     });
 }
-function hideControls(clear = true) {
+function hideControls(clear = true, save = true) {
+    if(save) {
+        if(!document.getElementById("color_controls").hidden) {
+            selectedElement.saveDisplayColor();
+        }
+        if(!document.getElementById("color_picker").hidden) {
+            if(selectedElement.get("colors", "mode") == "tint") {
+                selectedElement.addColorToPalette(getPickedColor());
+            }
+            selectedElement.setDisplayColor(getPickedColor());
+            selectedElement.saveDisplayColor();
+        }
+        if(!document.getElementById("movement_controls").hidden) {
+            selectedElement.saveDisplayTransform();
+        }
+    }
     document.getElementById("color_controls").hidden = true;
     document.getElementById("color_picker").hidden = true;
     document.getElementById("movement_controls").hidden = true;
@@ -306,7 +338,6 @@ function hideControls(clear = true) {
             toggledButton.onclick = toggledButton.defaultOnclick;
             toggledButton = undefined;
         }
-
         if(selectedElement != undefined) {
             selectedElement.refreshDisplay();
         }
@@ -314,25 +345,7 @@ function hideControls(clear = true) {
     }
     updateDraw = true;
 }
-function hideColorControls(save) {
-    if(save) {
-        selectedElement.saveDisplayColor();
-    }
-    hideControls();
-}
-function hideColorPicker(save) {
-    if(save) {
-        if(selectedElement.get("colors", "mode") == "tint") {
-            selectedElement.addColorToPalette(getPickedColor());
-        }
-        selectedElement.setDisplayColor(getPickedColor());
-    }
-    hideControls(false);
-}
 function hideMovementControls(save) {
-    if(save) {
-        selectedElement.saveDisplayTransform();
-    }
     hideControls();
 }
 function removeSelectedColor() {
@@ -362,6 +375,10 @@ async function applyPack(json, addDefaultElements=false) {
     }
     elementLookupTable = {};
     addedElements = [];
+    document.getElementById("pack_info_button").disabled = false;
+    document.getElementById("pack_info_button").onclick = function() {
+        showPackConfirmationPopup(json, false);
+    }
     document.getElementById("canvas_container").innerHTML = "<p id='p5_loading' class='loadingclass'>Loading Pack Images...</p>";
     document.getElementById("elements").innerHTML = "";
     currentPack = json;
@@ -452,6 +469,10 @@ function saveChangesToLocalStorage() {
     localStorage.setItem("changes", JSON.stringify(getJSON()));
 }
 
+function jailbreak() {
+    root.jailbreak();
+}
+
 document.addEventListener("click", function(event) {
     if(trashedButton != undefined && document.activeElement != trashedButton) {
         refreshTrashedButton();
@@ -513,7 +534,6 @@ async function onLoad() {
     if(localStorage.getItem("changes") !== null && localStorage.getItem("packURL") == currentPack.URL) {
         await loadChanges(localStorage.getItem("changes"));
     }
-    root.addNodesTo(document.getElementById("elements"));
     document.getElementById("canvas_container").style = `aspect-ratio:${currentPack.canvasWidth}/${currentPack.canvasHeight};`;
     sketchInstance = new p5(p => {
         p.preload = function() {
@@ -532,6 +552,7 @@ async function onLoad() {
                 element.style = `aspect-ratio:${currentPack.canvasWidth}/${currentPack.canvasHeight};`;
             });
             updateDraw = true;
+            root.addNodesTo(document.getElementById("elements"));
         }
         p.draw = function() {
             if(updateDraw) {

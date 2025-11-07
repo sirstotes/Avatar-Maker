@@ -15,25 +15,25 @@
     </head>
     <body>
         <div id="workspace">
-            <div id="canvas">
+            <div id="canvas" class="select_none">
                 <div id="controls_position">
                     <div id="movement_controls" class="controls_container" hidden>
                         <div class="controls">
-                            <button onclick="hideMovementControls(true);" id="move_check" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
-                            <button class="extrude translation" onclick="moveElement(0, -1);"><img class="icon" src="assets/up.png"></button>
-                            <button class="extrude translation" onclick="moveElement(0, 1);"><img class="icon" src="assets/down.png"></button>
-                            <button class="extrude translation" onclick="moveElement(-1, 0);"><img class="icon" src="assets/left.png"></button>
-                            <button class="extrude translation" onclick="moveElement(1, 0);"><img class="icon" src="assets/right.png"></button>
-                            <button class="extrude rotation" onclick="rotateElement(-1);"><img class="icon" src="assets/counterclockwise.png"></button>
-                            <button class="extrude rotation" onclick="rotateElement(1);"><img class="icon" src="assets/clockwise.png"></button>
-                            <button class="extrude scale" onclick="scaleElement(1, 1);"><img class="icon" src="assets/bigger.png"></button>
-                            <button class="extrude scale" onclick="scaleElement(-1, -1);"><img class="icon" src="assets/smaller.png"></button>
+                            <button onclick="hideControls(true, true);" id="move_check" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+                            <button class="extrude translation" id="translate_up" onclick="moveElement(0, -1);"><img class="icon" src="assets/up.png"></button>
+                            <button class="extrude translation" id="translate_down" onclick="moveElement(0, 1);"><img class="icon" src="assets/down.png"></button>
+                            <button class="extrude translation" id="translate_left" onclick="moveElement(-1, 0);"><img class="icon" src="assets/left.png"></button>
+                            <button class="extrude translation" id="translate_right" onclick="moveElement(1, 0);"><img class="icon" src="assets/right.png"></button>
+                            <button class="extrude rotation" id="rotate_counterclockwise" onclick="rotateElement(-1);"><img class="icon" src="assets/counterclockwise.png"></button>
+                            <button class="extrude rotation" id="rotate_clockwise" onclick="rotateElement(1);"><img class="icon" src="assets/clockwise.png"></button>
+                            <button class="extrude scale" id="scale_up" onclick="scaleElement(1, 1);"><img class="icon" src="assets/bigger.png"></button>
+                            <button class="extrude scale" id="scale_down" onclick="scaleElement(-1, -1);"><img class="icon" src="assets/smaller.png"></button>
                         </div>
                     </div>
                     <div id="color_controls" class="controls_container" hidden>
                         <div class="controls">
                             <div id="palette_container"></div>
-                            <button class="extrude" onclick="hideColorControls(true);" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+                            <button class="extrude" onclick="hideControls(true, true);" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
                             <button class="extrude" onclick="removeSelectedColor();"><img class="icon" src="assets/delete.png"></button>
                             <button class="extrude" onclick="showColorPicker();"><img class="icon" src="assets/plus.png"></button>
                         </div>
@@ -44,8 +44,8 @@
                             <input oninput="updateSelectedColor();" type="range" id="color_picker_hue" min="0" max="360"><br>
                             <input oninput="updateSelectedColor();" type="range" id="color_picker_saturation" min="0" max="100"><br>
                             <input oninput="updateSelectedColor();" type="range" id="color_picker_lightness" min="0" max="100"><br>
-                            <button class="extrude" onclick="hideColorPicker(true);hideColorControls(true);" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
-                            <button class="extrude" onclick="hideColorPicker(false);hideColorControls(false);" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
+                            <button class="extrude" onclick="hideControls(true, true);" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
+                            <button class="extrude" onclick="hideControls(false, false)" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
                         </div>
                     </div>
                 </div>
@@ -53,10 +53,11 @@
                     <div id="canvas_container">
                     </div>
                     <div id="bottom_controls">
-                        <button class="extrude" onclick="showMakerSelectPopup();"><img class="icon" src="assets/browser.png"></button>
+                        <button class="extrude" onclick="showMakerSelectPopup();"><img class="icon" src="assets/package.png"></button>
                         <button class="extrude" onclick="saveCanvas();"><img class="icon" src="assets/save.png"></button>
                         <button class="extrude" onclick="tryReset(this);"><img class="icon" src="assets/refresh.png"></button>
                         <button class="extrude" onclick="showElementExportPopup();"><img class="icon" src="assets/notes.png"></button>
+                        <button id="pack_info_button" class="extrude" disabled><img class="icon" src="assets/info.png"></button>
                     </div>
                 </div>
             </div>
@@ -93,7 +94,7 @@
                 <button class="extrude" onclick="hidePopups();" style="background-color: var(--button-cancel-color);"><img class="icon" src="assets/cancel.png" style="filter:invert(1);"></button>
             </div>
             <div id="explanation" hidden="true" style="text-align: left;background-color: var(--button-color);">
-                <h2>OpenAvi v0.5</h2>
+                <h2>OpenAvi v0.6</h2>
                 <p>Welcome to OpenAvi, a work-in-progress open-source alternative to <a href="https://picrew.me/">picrew</a>. OpenAvi started development in October of 2025. Some unique features of OpenAvi include:</p>
                 <ul>
                     <li>Image recoloring and custom colors</li>
@@ -124,6 +125,6 @@
                 <button class="extrude" onclick="hidePopups();" style="background-color: var(--button-confirm-color);"><img class="icon" src="assets/check.png" style="filter:invert(1);"></button>
             </div>
         </div>
-        <h1 onclick="showPopup('explanation')" style="cursor:pointer;">OpenAvi<span style="font-size:0.5em;">v0.5</span></h1>
+        <h1 onclick="showPopup('explanation')" style="cursor:pointer;">OpenAvi<span style="font-size:0.5em;">v0.6</span></h1>
     </body>
 </html>

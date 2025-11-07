@@ -79,6 +79,35 @@ class ConstrainedTransform extends Transform {
         // }
         return json;
     }
+    canTranslate(x, y) {//Function to check if translating will cause any change
+        let prev = {...this.translation};
+        this.translate(x, y);
+        let after = {...this.translation};
+        this.translation = prev;
+        return !(prev.x == after.x && prev.y == after.y);
+    }
+    canScale(x, y) {
+        let prev = {...this.scale};
+        this.addScale(x, y);
+        let after = {...this.scale};
+        this.scale = prev;
+        return !(prev.x == after.x && prev.y == after.y);
+    }
+    canRotate(r) {
+        let prev = this.rotation;
+        this.rotate(r);
+        let after = this.rotation;
+        this.rotation = prev;
+        return prev != after;
+    }
+    jailbreak() {
+        this.translationMin = undefined;
+        this.translationMax = undefined;
+        this.scaleMin = undefined;
+        this.scaleMax = undefined;
+        this.rotationMin = undefined;
+        this.rotationMax = undefined;
+    }
     translate(x, y) {
         super.translate(x, y);
         if(this.translationMax != undefined) {

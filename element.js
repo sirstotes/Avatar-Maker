@@ -3,6 +3,7 @@ class Element extends ElementContainer {
         super();
     }
     async init(json = {}, base = true) {
+        console.log("INITIALIZING ELEMENT: "+(json.name||"unnamed"));
         await super.init({}, base);
         this.parent = undefined;
         this.name = "";
@@ -38,7 +39,7 @@ class Element extends ElementContainer {
                 return "";
             })
             .click(function(element, button) {
-                hideControls();
+                hideControls(true, true);
                 selectedElement = element;
                 cancelButton(button);
                 if(element.get("colors", "mode") == "shift") {
@@ -51,7 +52,7 @@ class Element extends ElementContainer {
         this.childrenNode = undefined;
         this.boundingBox = undefined;
         await this.processJSON(json);
-        console.log("INITIALIZING ELEMENT: "+(this.name||"unnamed"));
+        console.log(this.selectedImage);
         if(this.name != "") {
             elementLookupTable[this.name] = this;
         }
@@ -80,6 +81,12 @@ class Element extends ElementContainer {
         }
         return this.selectedImage;
     }
+    getOrCreateBoundingBox() {
+        if(this.boundingBox == undefined) {
+            this.boundingBox = {x:0, y:0, w:this.getCurrentImage().getWidth(), h:this.getCurrentImage().getHeight()};
+        }
+        return this.boundingBox;
+    }
     isPointInBoundingBox(point) {
         return true;
     }
@@ -93,12 +100,6 @@ class Element extends ElementContainer {
     // getMask() {
     //     return this.getCurrentImage().getMask();
     // }
-    needsNewBuffer() {
-        return this.get("clip") || super.needsNewBuffer();
-    }
-    needsParentBufferSeparate() {
-        return this.get("clip");
-    }
     hasColorPalette() {
         return this.get("colors", "palette") != undefined;
     }
@@ -154,7 +155,7 @@ class Element extends ElementContainer {
         buffer.drawingContext.setLineDash([2, 6]);
         buffer.strokeWeight(3);
         buffer.stroke(0);
-        buffer.rect(this.boundingBox.x, this.boundingBox.y, this.boundingBox.w, this.boundingBox.h);
+        buffer.rect(this.getOrCreateBoundingBox().x, this.getOrCreateBoundingBox().y, this.getOrCreateBoundingBox().w, this.getOrCreateBoundingBox().h);
         let origin = this.get("transform", "origin");
         buffer.line(origin.x, origin.y-10, origin.x, origin.y+10);
         buffer.line(origin.x-10, origin.y, origin.x+10, origin.y);
@@ -164,6 +165,14 @@ class Element extends ElementContainer {
         let json = super.exportJSON();
         json.selectedImage = this.getImageNumber();
         return json;
+    }
+    exportOptions() {
+        let options = super.exportOptions();
+        options.thumbnail = this.thumbnail;
+        options.images = this.images;
+        options.selectedImage = this.selectedImage;
+        options.boundingBox = this.boundingBox;
+        return options;
     }
     refreshDisplay() {
         super.refreshDisplay();
@@ -205,9 +214,6 @@ class Element extends ElementContainer {
     setDisplayColor(color) {
         this.set("colors", color);
     }
-    toggleClip() {
-        this.get("clip") = !this.get("clip");
-    }
     async processJSON(json, refreshNode = false) {
         await super.processJSON(json, false);
         for(let i = 0; i < Object.keys(json).length; i ++) {
@@ -229,6 +235,9 @@ class Element extends ElementContainer {
                     options.thumbnail = thumbnail;
                     this.images.push(new LayeredImage(currentPack.URL, options));
                 }
+                if(Object.hasOwn(option, "default")) {
+                    this.selectedImage = option.default;
+                }
                 // if(Object.hasOwn(options, "folder")) {
                 //     let urls = await getDirectory(currentPack.URL+option.folder);
                 //     console.log("LOADING IMAGE URLS FROM FOLDER: "+option.folder);
@@ -241,6 +250,9 @@ class Element extends ElementContainer {
                 //     })
                 // }
             }
+        }
+        if(this.selectedImage == "random") {
+            this.selectedImage = Math.floor(Math.random() * this.images.length);
         }
         if(refreshNode) {
             this.refreshNode();

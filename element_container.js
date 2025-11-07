@@ -10,11 +10,10 @@ class ElementContainer {
         this.addableChildren = [];
         this.collapsible = false;
         this.collapsed = false;
-        this.optionSources = {};
         this.options = {
             transform: new TransformOption(this, "transform", "assets/move.png")
                 .click(function(element, button) {
-                    hideControls();
+                    hideControls(true, true);
                     selectedElement = element;
                     cancelButton(button);
                     showMovementControls();
@@ -23,11 +22,13 @@ class ElementContainer {
                 .property("value", 1)
                 .click(function(element, button) {
                     element.set("horizontalFlip", element.get("horizontalFlip") * -1);
+                    updateDraw = true;
                 }),
             verticalFlip: new Option(this, "verticalFlip", "assets/vertical.png")
                 .property("value", 1)
                 .click(function(element, button) {
                     element.set("verticalFlip", element.get("verticalFlip") * -1);
+                    updateDraw = true;
                 }),
             hide: new Option(this, "hide", "assets/shown.png")
                 .property("value", false)
@@ -51,10 +52,8 @@ class ElementContainer {
             clip: new Option(this, "clip", "assets/mask.png")
                 .property("value", false)
                 .click(function(element, button) {
-                    return function() {
-                        element.toggleClip();
-                        updateDraw = true;
-                    }
+                    element.toggleClip();
+                    updateDraw = true;
                 })
         };
         this.shouldCreateNode = !outermost;
@@ -77,7 +76,7 @@ class ElementContainer {
         return this.get("hide");
     }
     isPointInBoundingBox(point) {
-        for(child of this.children) {
+        for(let child of this.children) {
             if(child.isPointInBoundingBox(point)) {
                 return true;
             }
@@ -163,12 +162,7 @@ class ElementContainer {
     //     return this.parent.getElementBefore(this);
     // }
     needsNewBuffer() {
-        return this.children.some(child => {
-            if (child instanceof Element) {
-                return child.needsParentBufferSeparate();
-            }
-            return child.needsNewBuffer();
-        });
+        return this.get("clip") || this.children.some(child => child.needsNewBuffer());
     }
     addChild(element) {
         this.children.push(element);
@@ -224,6 +218,15 @@ class ElementContainer {
         parentElementContainer.addChild(clone);
         parentElementContainer.refreshChildrenNode();
         return clone;
+    }
+    canTranslate(x, y) {
+        return this.get("transform").canTranslate(x * this.get("transform", "increment").translation.x, y * this.get("transform", "increment").translation.y);
+    }
+    canRotate(d) {
+        return this.get("transform").canRotate(d * this.get("transform", "increment").rotation);
+    }
+    canScale(x, y) {
+        return this.get("transform").canScale(x * this.get("transform", "increment").scale.x, y * this.get("transform", "increment").scale.y);
     }
     createChildrenNode() {
         const div = document.createElement("div");
@@ -332,6 +335,14 @@ class ElementContainer {
         element.appendChild(mainDiv);
         return element;
     }
+    jailbreak() {
+        Object.keys(this.options).forEach(key => this.options[key].allowEdit = true);
+        this.get("transform").jailbreak();
+        this.reorderable = true;
+        this.children.forEach(child => child.jailbreak());
+        this.refreshNode();
+        this.refreshChildrenNode();
+    }
     render(buffers) {
         if(!this.isHidden()) {
             if(this.needsNewBuffer()) {
@@ -341,7 +352,7 @@ class ElementContainer {
                 this.children.forEach(child => {
                     child.render(buffers);
                 });
-                if(this.get("clip", "clipping")) {
+                if(this.get("clip")) {
                     buffers.pop(Buffers.clip(Buffers.normalBlend));
                 } else {
                     buffers.pop();
@@ -364,6 +375,9 @@ class ElementContainer {
     }
     replaceOptionReference(name, newReference) {
         this.options[name] = newReference;
+    }
+    toggleClip() {
+        this.set("clip", !this.get("clip"));
     }
     draw(buffer) {}
     drawAfter(buffer) {}
@@ -392,9 +406,6 @@ class ElementContainer {
     exportOptions() {
         const options = {
             name: this.name,
-            thumbnail: this.thumbnail,
-            images: this.images,
-            selectedImage: this.selectedImage,
             collapsible: this.collapsible,
             collapsed: this.collapsed
         };
@@ -500,14 +511,14 @@ class ElementContainer {
     refreshDisplay() {
         this.getOption("transform").revert();
     }
-    refreshChildrenNode() {
+    refreshChildrenNode() {//Recreate and replace the DOM elementfor this element's children.
         const node = this.createChildrenNode();
         if(this.childrenNode != undefined) {
             this.childrenNode.replaceWith(node);
         }
         this.childrenNode = node;
     }
-    refreshNode() {
+    refreshNode() {//Recreate and replace the DOM element for this element.
         if(this.shouldCreateNode) {
             const node = this.createNode();
             if(this.node != undefined) {

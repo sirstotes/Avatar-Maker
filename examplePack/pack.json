@@ -4,6 +4,7 @@
     "icon": "pack.png",
     "canvasWidth": 800,
     "canvasHeight": 1000,
+    "defaultPalette": ["#ffffff", "#aea9aa", "#413a43", "#bf6a6e", "#f3a47f", "#edc691", "#95ae73", "#b6e1db", "#6b8eb8", "#978abb", "#d9b4da", "#efb2ca"],
     "root": {
         "children": [
             {
@@ -32,6 +33,7 @@
                         "name": "hair",
                         "thumbnail": "default_icons/hair.png",
                         "hide": true,
+                        "selectedImage": "random",
                         "image": {
                             "thumbnail": {"x":0, "y":300, "scale":0.75},
                             "variants": [
@@ -205,7 +207,7 @@
                                 "name": "eyelids",
                                 "thumbnail": "default_icons/grace.png",
                                 "image": {
-                                    "thumbnail": {"x":0, "y":30, "scale":9},
+                                    "thumbnail": {"x":25, "y":315, "scale":4},
                                     "variants": ["eyes/1.png", "eyes/2.png", "eyes/3.png"]
                                 },
                                 "colors": {
@@ -220,7 +222,8 @@
                                 "hide": true,
                                 "thumbnail": "default_icons/eyelash.png",
                                 "image": {
-                                    "thumbnail": {"x":0, "y":30, "scale":9},
+                                    "default": "random",
+                                    "thumbnail": {"x":25, "y":315, "scale":4},
                                     "variants": ["eyelashes/1.png", "eyelashes/2.png", "eyelashes/3.png", "eyelashes/4.png", "eyelashes/5.png", "eyelashes/6.png", "eyelashes/7.png"]
                                 }
                             }
@@ -239,6 +242,7 @@
                         },
                         "boundingBox": {"x": 0, "y":-300, "w":25, "h":25},
                         "image": {
+                            "default": "random",
                             "thumbnail": {"x":0, "y":300, "scale":3},
                             "variants": ["nose/1.png", "nose/2.png", "nose/3.png", "nose/4.png", "nose/5.png", "nose/6.png"]
                         }
@@ -303,6 +307,7 @@
                     {
                         "name": "bangs",
                         "thumbnail": "default_icons/bangs.png",
+                        "selectedImage": "random",
                         "hide": true,
                         "image": {
                             "thumbnail": {"x":0, "y":300, "scale":0.75},

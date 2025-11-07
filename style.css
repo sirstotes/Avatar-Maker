@@ -10,7 +10,7 @@
     --button-cancel-color: #d82121;
     font-family: 'Courier New', Courier, monospace;
 }
-.select-none {
+.select_none {
     -webkit-user-select: none; /* Safari */
     -moz-user-select: none; /* Firefox */
     -ms-user-select: none; /* Internet Explorer/Edge */
